@@ -1,6 +1,7 @@
 # kdump
 Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to files in yaml form.
-*Poor man's etcd<->git sync :).*
+
+#### *Poor man's etcd<->git sync :).*
 
 Dumps everything from all configured contexts, and I mean everything.
 
