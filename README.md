@@ -20,6 +20,7 @@ WARNING: also dumps secrets. If you use this in for example a backup script and 
 │   ├── context1_namespace2
 │       ├── <namespaced-resources..>.yml
 └── context2
+    ├── <non-namespaced-resources..>.yml
     ├── context2_namespace1
     |   ├── <namespaced-resources..>.yml
     ├── context2_namespace2
