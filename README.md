@@ -9,7 +9,7 @@ WARNING: also dumps secrets. If you use this in for example a backup script and 
 
 ### Example
 
-A rancher2 setup with 2 clusters (test and prod), each with a default namespace:
+A rancher2 (kubernetes management platform) setup with 2 clusters (test and prod), each with a default namespace:
 
 `cd /tmp/kubedump`
 
