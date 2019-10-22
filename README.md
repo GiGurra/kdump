@@ -9,6 +9,24 @@ Dumps everything from all configured contexts, and I mean everything.
 
 WARNING: also dumps secrets. If you use this in for example a backup script and then commit to git (my use case), be sure to put secret in your .gitignore (or encrypt them)
 
+### Output: Downloaded directory/file structure
+
+```
+.
+├── context1
+│   ├── <non-namespaced-resources..>.yml
+│   ├── context1_namespace1
+│   |   ├── <namespaced-resources..>.yml
+│   ├── context1_namespace2
+│       ├── <namespaced-resources..>.yml
+└── context2
+    ├── context2_namespace1
+    |   ├── <namespaced-resources..>.yml
+    ├── context2_namespace2
+        ├── <namespaced-resources..>.yml
+```
+
+
 ### Example
 
 A rancher2 (kubernetes management platform) setup with 2 clusters (test and prod), each with a default namespace:
