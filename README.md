@@ -3,7 +3,7 @@ Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to fil
 
 #### *My use case: poor man's etcd <-> git sync*
 
-Dumps everything from all configured contexts, and I mean everything.
+Dumps all api-resources from all configured contexts.
 
 * Calls `kubectl api-resources` to figure out what it has access to, then starts downloading all of it using `kubectl get <resource> -o yaml > <file>`.
 
