@@ -1,13 +1,15 @@
 # kdump
 Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to files in yaml form.
 
-#### *My use case: poor man's etcd <-> git sync*
+Quick and dirty hack. Don't expect pretty code :).
+
+##### *My use case: poor man's etcd -> git sync*
 
 Dumps all api-resources from all configured contexts.
 
 * Calls `kubectl api-resources` to figure out what it has access to, then starts downloading all of it using `kubectl get <resource> -o yaml > <file>`.
 
-WARNING: also dumps secrets. If you use this in for example a backup script and then commit to git (my use case), be sure to put `*secret*` in your .gitignore (or encrypt them)
+*WARNING: also dumps secrets. If you use this in for example a backup script and then commit to git (my use case), be sure to put `*secret*` in your .gitignore (or encrypt them)*
 
 ### Output: Downloaded directory/file structure
 
@@ -27,12 +29,17 @@ WARNING: also dumps secrets. If you use this in for example a backup script and 
         ├── <namespaced-resources..>.yml
 ```
 
+## Warning
+
+Written in Node.js, which I am a beginner in. All advice on style and best practices very welcome!
+Expect things to break :S.
+
 
 ### Example
 
 A rancher2 (kubernetes management platform) setup with 2 clusters (test and prod), each with a default namespace:
 
-`cd /tmp/kubedump`
+`cd somewhere`
 
 `kdump`
 
@@ -490,3 +497,4 @@ A rancher2 (kubernetes management platform) setup with 2 clusters (test and prod
     └── volumeattachments.yml
 
 14 directories, 435 files```
+
