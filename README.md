@@ -11,6 +11,29 @@ Dumps all api-resources from all configured contexts.
 
 *WARNING: also dumps secrets. If you use this in for example a backup script and then commit to git (my use case), be sure to put `*secret*` in your .gitignore (or encrypt them)*
 
+
+##### Options
+
+```
+╰─>$ kdump --help
+Options:
+  --version                    Show version number                     [boolean]
+  --context, -c                Specify contexts. If omitted - use all available
+                                                                         [array]
+  --exclude-context, --ec      Exclude contexts                          [array]
+  --namespace, -n              Specify namespaces. If omitted - use all
+                               available                                 [array]
+  --exclude-namespace, --en    Exclude namespaces                        [array]
+  --exclude-global, --eg       Exclude global (non-namespaced) data
+                                                      [boolean] [default: false]
+  --namespaced-resource, --nr  Specify namespaced resources. If omitted - use
+                               all available                             [array]
+  --global-resource, --gr      Specify global resources. If omitted - use all
+                               available                                 [array]
+  --exclude-resource, --er     Exclude resource                          [array]
+  --help                       Show help                               [boolean]
+```
+
 ### Output: Downloaded directory/file structure
 
 ```
