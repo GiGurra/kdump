@@ -63,6 +63,12 @@ async function main() {
 
             for (const namespacedResource of namespacedResources) {
 
+                const humanReadableTable = getItems(namespacedResource.name);
+
+                if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
+                    continue;
+                }
+
                 const resourceYaml = execSync("kubectl get " + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString();
 
                 if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
@@ -184,6 +190,11 @@ function parseCmdLine() {
             description: 'Output directory',
             type: 'string'
         })
+        .option('include-empty-resources', {
+            description: 'If to write yaml files for resources with no entries',
+            type: 'boolean',
+            default: false
+        })
         .help()
         .strict()
         .argv;
@@ -206,6 +217,15 @@ function toResource(tableResource) {
 
 function getContexts() {
     return execSync("kubectl config get-contexts -o name")
+        .toString()
+        .trim()
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(x => x.length > 0);
+}
+
+function getItems(resourceName) {
+    return execSync("kubectl get " + resourceName + " -o name")
         .toString()
         .trim()
         .split(/\r?\n/)
