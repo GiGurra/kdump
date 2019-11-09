@@ -31,6 +31,18 @@ Options:
   --global-resource, --gr      Specify global resources. If omitted - use all
                                available                                 [array]
   --exclude-resource, --er     Exclude resource                          [array]
+  --include-secrets            If to include secrets, default false. you will
+                               need to include encrypt-password or set
+                               encrypt-secrets false  [boolean] [default: false]
+  --encrypt-secrets            If to encrypt the secrets resource. Default and
+                               recommended. To decrypt:
+                               openssl enc -d -aes-256-cbc -iv hexIV -K hexKey
+                                                       [boolean] [default: true]
+  --encrypt-password, -p       Password for aes-256-cbc encryption of secrets
+                               resource. This must be 32 bytes hex (64
+                               characters).You can generate one using:
+                               openssl rand -hex 32                     [string]
+  --output-dir, -o             Output directory                         [string]
   --help                       Show help                               [boolean]
 ```
 

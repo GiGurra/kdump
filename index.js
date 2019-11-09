@@ -3,6 +3,7 @@
 const execSync = require('child_process').execSync;
 const fs = require("fs");
 const yargs = require("yargs");
+const crypto = require('crypto');
 
 const tableParser = require('table-parser');
 
@@ -16,15 +17,18 @@ async function main() {
         return !cmdLine.ec || cmdLine.ec.indexOf(c) < 0
     });
 
+    const rootDir = cmdLine.o ? cmdLine.o + "/" : "";
+
     console.log("contexts: " + contexts);
 
     for (const context of contexts) {
+
         console.log(" - processing context '" + context + "'");
 
-        if (fs.existsSync(context)) {
+        if (fs.existsSync(rootDir + context)) {
             throw new Error("Output directory '" + context + "' already exists!");
         }
-        fs.mkdirSync(context, {recursive: true});
+        fs.mkdirSync(rootDir + context, {recursive: true});
 
         execSync("kubectl config use-context " + context);
 
@@ -53,14 +57,42 @@ async function main() {
 
             console.log("   - processing namespace resources for namespace: " + namespace);
 
-            fs.mkdirSync(context + "/" + namespace, {recursive: true});
+            fs.mkdirSync(rootDir + context + "/" + namespace, {recursive: true});
 
             execSync("kubectl config set-context --current --namespace=" + namespace);
 
             for (const namespacedResource of namespacedResources) {
 
                 const resourceYaml = execSync("kubectl get " + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString();
-                fs.writeFileSync(context + "/" + namespace + "/" + namespacedResource.name + ".yml", resourceYaml)
+
+                if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
+                    console.log("WARNING: Skipping resource 'secrets' as include-secrets was not set");
+                    continue;
+                }
+
+                if (namespacedResource.name === "secrets" && cmdLine['encrypt-secrets']) {
+
+                    if (!cmdLine['encrypt-password']) {
+                        throw new Error("Failed encrypting secrets: cmd line flag --encrypt-secrets set, but no --encrypt-password/-p value provided");
+                    }
+
+                    const key = Buffer.from(cmdLine['encrypt-password'], 'hex');
+
+                    const algorithm = 'aes-256-cbc';
+                    const iv = crypto.randomBytes(16);
+
+                    function encrypt(text) {
+                        let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+                        let encrypted = cipher.update(text);
+                        encrypted = Buffer.concat([encrypted, cipher.final()]);
+                        return encrypted;
+                    }
+
+                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".iv=" + iv.toString("hex") + ".yml", encrypt(resourceYaml));
+                }
+                else {
+                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".yml", resourceYaml);
+                }
 
             }
 
@@ -76,7 +108,7 @@ async function main() {
             for (const globalResource of globalResources) {
 
                 const resourceYaml = execSync("kubectl get " + globalResource.name + " -o yaml").toString();
-                fs.writeFileSync(context + "/" + globalResource.name + ".yml", resourceYaml)
+                fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
             }
 
         }
@@ -127,6 +159,30 @@ function parseCmdLine() {
             alias: 'er',
             description: 'Exclude resource',
             type: 'array'
+        })
+        .option('include-secrets', {
+            description: 'If to include secrets, default false. you will need to include encrypt-password or set encrypt-secrets false',
+            type: 'boolean',
+            default: false
+        })
+        .option('encrypt-secrets', {
+            description: 'If to encrypt the secrets resource. Default and recommended. ' +
+                'To decrypt: \n' +
+                'openssl enc -d -aes-256-cbc -iv hexIV -K hexKey',
+            type: 'boolean',
+            default: true
+        })
+        .option('encrypt-password', {
+            alias: 'p',
+            description: 'Password for aes-256-cbc encryption of secrets resource. This must be 32 bytes hex (64 characters).' +
+                'You can generate one using: \n' +
+                'openssl rand -hex 32',
+            type: 'string'
+        })
+        .option('output-dir', {
+            alias: 'o',
+            description: 'Output directory',
+            type: 'string'
         })
         .help()
         .strict()
