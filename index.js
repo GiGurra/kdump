@@ -82,19 +82,49 @@ async function main() {
                         throw new Error("Failed encrypting secrets: cmd line flag --encrypt-secrets set, but no --encrypt-password/-p value provided");
                     }
 
-                    const key = Buffer.from(cmdLine['encrypt-password'], 'hex');
-
-                    const algorithm = 'aes-256-cbc';
-                    const iv = crypto.randomBytes(16);
-
-                    function encrypt(text) {
-                        let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
-                        let encrypted = cipher.update(text);
-                        encrypted = Buffer.concat([encrypted, cipher.final()]);
-                        return encrypted;
+                    if (!cmdLine['encrypt-algorithm']) {
+                        throw new Error("Failed encrypting secrets: cmd line flag --encrypt-algorithm empty");
                     }
 
-                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".iv=" + iv.toString("hex") + ".yml", encrypt(resourceYaml));
+                    const algorithm = cmdLine['encrypt-algorithm'];
+                    const key = Buffer.from(cmdLine['encrypt-password'], 'hex');
+
+                    const prevDumpDir = cmdLine['prev-dump-dir'];
+
+                    if (prevDumpDir) {
+                        if (fs.existsSync(prevDumpDir)) {
+                            if (fs.existsSync(prevDumpDir + "/" + context + "/" + namespace)) {
+                                const filesInOldDir = fs.readdirSync(prevDumpDir + "/" + context + "/" + namespace);
+                                const oldFileIndex = filesInOldDir.findIndex(f => f.startsWith(namespacedResource.name + ".iv=") && f.endsWith(".yml"));
+                                if (oldFileIndex >= 0) {
+
+                                    const oldFileKey = cmdLine['encrypt-prev-password'] || key;
+                                    const oldFileAlgorithm = cmdLine['encrypt-prev-algorithm'] || algorithm;
+
+                                    const oldFileName = filesInOldDir[oldFileIndex];
+                                    const oldFileIv = oldFileName.split('.iv=')[1].split('.yml')[0];
+
+                                    const oldFileContents = fs.readFileSync(prevDumpDir + "/" + context + "/" + namespace + "/" + oldFileName);
+                                    const decryptedOldFile = decrypt(oldFileContents, oldFileKey, Buffer.from(oldFileIv, 'hex'), oldFileAlgorithm).toString();
+
+                                    if (decryptedOldFile === resourceYaml) {
+                                        const fromFile = prevDumpDir + "/" + context + "/" + namespace + "/" + oldFileName;
+                                        const toFile = rootDir + "/" + context + "/" + namespace + "/" + oldFileName;
+                                        fs.copyFileSync(fromFile, toFile);
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            console.error("WARNING: --prev-dump-dir given, but specified directory does not exist!");
+                        }
+                    }
+
+                    const iv = crypto.randomBytes(16);
+                    const encryptedData = encrypt(resourceYaml, key, iv, algorithm);
+
+                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".iv=" + iv.toString("hex") + ".yml", encryptedData);
                 }
                 else {
                     fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".yml", resourceYaml);
@@ -121,6 +151,18 @@ async function main() {
     }
 
     console.log("kube-dump script finished!")
+}
+
+function decrypt(encryptedData, key, iv, algorithm) {
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    const decrypted = decipher.update(encryptedData);
+    return Buffer.concat([decrypted, decipher.final()]);
+}
+
+function encrypt(text, key, iv, algorithm) {
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+    const encrypted = cipher.update(text);
+    return Buffer.concat([encrypted, cipher.final()]);
 }
 
 function parseCmdLine() {
@@ -183,6 +225,23 @@ function parseCmdLine() {
             description: 'Password for aes-256-cbc encryption of secrets resource. This must be 32 bytes hex (64 characters).' +
                 'You can generate one using: \n' +
                 'openssl rand -hex 32',
+            type: 'string'
+        })
+        .option('encrypt-algorithm', {
+            description: 'Encryption algorithm to use for secrets',
+            type: 'string',
+            default: 'aes-256-cbc'
+        })
+        .option('prev-dump-dir', {
+            description: 'Directory with contents of previous dump. Useful to compare encrypted secrets to only replace file if something actually changed. (otherwise you will get a git diff every time because encryption IV changes)',
+            type: 'string'
+        })
+        .option('encrypt-prev-password', {
+            description: 'encrypt-password used for prev-dump-dir, if different than current',
+            type: 'string'
+        })
+        .option('encrypt-prev-algorithm', {
+            description: 'encrypt-algorithm used for prev-dump-dir, if different than current',
             type: 'string'
         })
         .option('output-dir', {
