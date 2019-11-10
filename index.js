@@ -143,6 +143,12 @@ async function main() {
 
             for (const globalResource of globalResources) {
 
+                const humanReadableTable = getItems(globalResource.name);
+
+                if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
+                    continue;
+                }
+
                 const resourceYaml = execSync("kubectl get " + globalResource.name + " -o yaml").toString();
                 fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
             }
