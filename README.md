@@ -42,8 +42,22 @@ Options:
                                resource. This must be 32 bytes hex (64
                                characters).You can generate one using:
                                openssl rand -hex 32                     [string]
+  --encrypt-algorithm          Encryption algorithm to use for secrets
+                                               [string] [default: "aes-256-cbc"]
+  --prev-dump-dir              Directory with contents of previous dump. Useful
+                               to compare encrypted secrets to only replace file
+                               if something actually changed. (otherwise you
+                               will get a git diff every time because encryption
+                               IV changes)                              [string]
+  --encrypt-prev-password      encrypt-password used for prev-dump-dir, if
+                               different than current                   [string]
+  --encrypt-prev-algorithm     encrypt-algorithm used for prev-dump-dir, if
+                               different than current                   [string]
   --output-dir, -o             Output directory                         [string]
+  --include-empty-resources    If to write yaml files for resources with no
+                               entries                [boolean] [default: false]
   --help                       Show help                               [boolean]
+
 ```
 
 ### Output: Downloaded directory/file structure
