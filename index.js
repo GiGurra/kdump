@@ -109,7 +109,7 @@ async function main() {
 
                                     if (decryptedOldFile === resourceYaml) {
                                         const fromFile = prevDumpDir + "/" + context + "/" + namespace + "/" + oldFileName;
-                                        const toFile = rootDir + "/" + context + "/" + namespace + "/" + oldFileName;
+                                        const toFile = rootDir + context + "/" + namespace + "/" + oldFileName;
                                         fs.copyFileSync(fromFile, toFile);
                                         continue;
                                     }
