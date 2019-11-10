@@ -49,15 +49,10 @@ Options:
                                if something actually changed. (otherwise you
                                will get a git diff every time because encryption
                                IV changes)                              [string]
-  --encrypt-prev-password      encrypt-password used for prev-dump-dir, if
-                               different than current                   [string]
-  --encrypt-prev-algorithm     encrypt-algorithm used for prev-dump-dir, if
-                               different than current                   [string]
   --output-dir, -o             Output directory                         [string]
   --include-empty-resources    If to write yaml files for resources with no
                                entries                [boolean] [default: false]
   --help                       Show help                               [boolean]
-
 ```
 
 ### Output: Downloaded directory/file structure

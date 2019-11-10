@@ -98,8 +98,8 @@ async function main() {
                                 const oldFileIndex = filesInOldDir.findIndex(f => f.startsWith(namespacedResource.name + ".iv=") && f.endsWith(".yml"));
                                 if (oldFileIndex >= 0) {
 
-                                    const oldFileKey = cmdLine['encrypt-prev-password'] || key;
-                                    const oldFileAlgorithm = cmdLine['encrypt-prev-algorithm'] || algorithm;
+                                    const oldFileKey = key;
+                                    const oldFileAlgorithm = algorithm;
 
                                     const oldFileName = filesInOldDir[oldFileIndex];
                                     const oldFileIv = oldFileName.split('.iv=')[1].split('.yml')[0];
@@ -240,14 +240,6 @@ function parseCmdLine() {
         })
         .option('prev-dump-dir', {
             description: 'Directory with contents of previous dump. Useful to compare encrypted secrets to only replace file if something actually changed. (otherwise you will get a git diff every time because encryption IV changes)',
-            type: 'string'
-        })
-        .option('encrypt-prev-password', {
-            description: 'encrypt-password used for prev-dump-dir, if different than current',
-            type: 'string'
-        })
-        .option('encrypt-prev-algorithm', {
-            description: 'encrypt-algorithm used for prev-dump-dir, if different than current',
             type: 'string'
         })
         .option('output-dir', {
