@@ -63,9 +63,6 @@ async function main() {
                 .filter(x => !isIgnoredResource(x, ignoredTypes))
                 .filter(r => !cmdLine.er || cmdLine.er.indexOf(r.name) < 0);
 
-        console.log(allResources);
-        process.exit(0);
-
         const namespacedResources =
             allResources
                 .filter(r => r.namespaced)
