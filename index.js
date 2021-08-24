@@ -151,7 +151,7 @@ async function main() {
                     continue;
                 }
 
-                const resourceYaml = execSync("kubectl get " + globalResource.name + " -o yaml").toString();
+                const resourceYaml = execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString();
                 fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
             }
 
