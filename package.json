@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/gigurra/kdump#readme",
   "dependencies": {
+    "js-yaml": "^4.1.0",
     "table-parser": "^1.0.0",
     "yargs": "^14.2.0"
   }

@@ -2,6 +2,7 @@
 
 const execSync = require('child_process').execSync;
 const fs = require("fs");
+const yaml = require('js-yaml');
 const yargs = require("yargs");
 const crypto = require('crypto');
 
@@ -93,7 +94,7 @@ async function main() {
                     continue;
                 }
 
-                const resourceYaml = execSync("kubectl get " + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString();
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
 
                 if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
                     console.log("WARNING: Skipping resource 'secrets' as include-secrets was not set");
@@ -173,7 +174,7 @@ async function main() {
                     continue;
                 }
 
-                const resourceYaml = execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString();
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
                 fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
             }
 
@@ -181,6 +182,61 @@ async function main() {
     }
 
     console.log("kube-dump script finished!")
+}
+
+function cleanUpKubernetesItemsYaml(itemsString) {
+
+    // TODO: Make this configurable
+
+    const data = yaml.load(itemsString);
+
+    for (const item of data.items) {
+
+        // remove things we simply dont want
+        delete item['lastRefresh'];
+        delete item['status'];
+
+        // clean up metadata
+        if (item['metadata']) {
+            delete item['metadata']['generation'];
+            delete item['metadata']['resourceVersion'];
+            if (item['metadata']['annotations']) {
+                delete item['metadata']['annotations']['control-plane.alpha.kubernetes.io/leader'];
+                delete item['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                delete item['metadata']['annotations']['cattle.io/timestamp'];
+            }
+        }
+
+        // clean up spec
+        if (item['spec']) {
+
+            delete item['spec']['renewTime'];
+
+            if (item['spec']['template']) {
+                if (item['spec']['template']['metadata']) {
+                    if (item['spec']['template']['metadata']['annotations']) {
+                        delete item['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                        delete item['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
+                    }
+                }
+            }
+
+            if (item['spec']['jobTemplate']) {
+                if (item['spec']['jobTemplate']['spec']) {
+                    if (item['spec']['jobTemplate']['spec']['template']) {
+                        if (item['spec']['jobTemplate']['spec']['template']['metadata']) {
+                            if (item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']) {
+                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return yaml.dump(data);
 }
 
 function decrypt(encryptedData, key, iv, algorithm) {
