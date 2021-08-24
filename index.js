@@ -33,7 +33,6 @@ async function main() {
         execSync("kubectl config use-context " + context);
 
         const tablesStr = execSync("kubectl api-resources -o wide").toString();
-        console.log(tablesStr);
 
         const allResources =
             tableParser
