@@ -11,6 +11,27 @@ async function main() {
 
     const cmdLine = parseCmdLine();
 
+    // Make this configurable
+    const ignoredTypes = [
+        "events",
+        "jobs",
+        "pods",
+        "componentstatuses",
+        "endpoints",
+        "replicasets",
+        "clusterauthtokens",
+        "clusteruserattributes",
+        "controllerrevisions",
+        "apiservices",
+        "clusterinformations",
+        //"customresourcedefinitions",
+        "felixconfigurations",
+        "ippools",
+        "nodes",
+        "priorityclasses",
+        "leases"
+    ];
+
     console.log("Running kube-dump script");
 
     const contexts = (cmdLine.c || getContexts()).filter( c => {
@@ -39,7 +60,11 @@ async function main() {
                 .parse(tablesStr)
                 .map(toResource)
                 .filter(isReadableResource)
+                .filter(x => !isIgnoredResource(x, ignoredTypes))
                 .filter(r => !cmdLine.er || cmdLine.er.indexOf(r.name) < 0);
+
+        console.log(allResources);
+        process.exit(0);
 
         const namespacedResources =
             allResources
@@ -261,6 +286,10 @@ function parseCmdLine() {
 
 function isReadableResource(resource) {
     return resource.verbs.indexOf('get') >= 0;
+}
+
+function isIgnoredResource(resource, ignoreList) {
+    return ignoreList.indexOf(resource.name) >= 0;
 }
 
 function toResource(tableResource) {
