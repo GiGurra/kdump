@@ -1,6 +1,6 @@
 {
   "name": "kdump",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Dumps all api-resources to yaml-files for all contexts and namespaces",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/gigurra/kdump#readme",
   "dependencies": {
-    "table-parser": "^1.0.1",
+    "table-parser": "^1.0.0",
     "yargs": "^14.2.0"
   }
 }

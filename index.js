@@ -32,9 +32,12 @@ async function main() {
 
         execSync("kubectl config use-context " + context);
 
+        const tablesStr = execSync("kubectl api-resources -o wide").toString();
+        console.log(tablesStr);
+
         const allResources =
             tableParser
-                .parse(execSync("kubectl api-resources -o wide").toString())
+                .parse(tablesStr)
                 .map(toResource)
                 .filter(isReadableResource)
                 .filter(r => !cmdLine.er || cmdLine.er.indexOf(r.name) < 0);
@@ -265,7 +268,7 @@ function toResource(tableResource) {
     const out = {};
     out.name = tableResource.NAME.toString();
     out.shortNames = tableResource.SHORTNAMES.toString().split(',').map(x => x.trim()).filter(x => x.length > 0);
-    out.apiGroup = tableResource.APIGROUP.toString();
+    //out.apiGroup = tableResource.APIGROUP.toString();
     out.namespaced = tableResource.NAMESPACED.toString() === "true";
     out.kind = tableResource.NAMESPACED.toString();
     out.verbs = tableResource.VERBS.toString().slice(1, tableResource.VERBS.toString().length-1).split(',');
@@ -282,7 +285,7 @@ function getContexts() {
 }
 
 function getItems(resourceName) {
-    return execSync("kubectl get " + resourceName + " -o name")
+    return execSync("kubectl get " + resourceName + " -o name", {maxBuffer: 100*1024*1024})
         .toString()
         .trim()
         .split(/\r?\n/)
