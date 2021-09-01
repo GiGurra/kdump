@@ -19,6 +19,7 @@ async function main() {
         "pods",
         "componentstatuses",
         "endpoints",
+        "endpointslices",
         "replicasets",
         "clusterauthtokens",
         "clusteruserattributes",
