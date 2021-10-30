@@ -1,6 +1,6 @@
 {
   "name": "kdump",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Dumps all api-resources to yaml-files for all contexts and namespaces",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,6 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "table-parser": "^1.0.0",
-    "yargs": "^14.2.0"
+    "yargs": "^17.2.1"
   }
 }
