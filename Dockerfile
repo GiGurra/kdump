@@ -18,6 +18,7 @@ RUN mv ./kubectl /usr/local/bin/kubectl
 RUN mkdir ~/.ssh
 RUN chmod 600 ~/.ssh
 RUN ssh-keyscan github.com >> ~/.ssh/known_hosts #is this safe?
+RUN ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts #is this safe?
 
 # install kdump
 RUN npm i -g kdump
