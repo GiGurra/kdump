@@ -87,17 +87,19 @@ async function main() {
 
             fs.mkdirSync(rootDir + context + "/" + namespace, {recursive: true});
 
-            execSync("kubectl config set-context --current --namespace=" + namespace);
+            if (context !== "current") { // support cluster service accounts
+                execSync("kubectl config set-context --current --namespace=" + namespace);
+            }
 
             for (const namespacedResource of namespacedResources) {
 
-                const humanReadableTable = getItems(namespacedResource.name);
+                const humanReadableTable = getNamespacedItemNames(namespace, namespacedResource.name);
 
                 if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
                     continue;
                 }
 
-                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync(`kubectl -n ${namespace} get ` + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
 
                 if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
                     console.log("WARNING: Skipping resource 'secrets' as include-secrets was not set");
@@ -171,7 +173,7 @@ async function main() {
 
             for (const globalResource of globalResources) {
 
-                const humanReadableTable = getItems(globalResource.name);
+                const humanReadableTable = getGlobalItemNames(globalResource.name);
 
                 if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
                     continue;
@@ -368,8 +370,17 @@ function getContexts() {
         .filter(x => x.length > 0);
 }
 
-function getItems(resourceName) {
-    return execSync("kubectl get " + resourceName + " -o name", {maxBuffer: 100*1024*1024})
+function getNamespacedItemNames(namespace, resourceName) {
+    return execSync(`kubectl -n ${namespace} get ` + resourceName + " -o name", {maxBuffer: 100*1024*1024})
+        .toString()
+        .trim()
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(x => x.length > 0);
+}
+
+function getGlobalItemNames(resourceName) {
+    return execSync(`kubectl get ` + resourceName + " -o name", {maxBuffer: 100*1024*1024})
         .toString()
         .trim()
         .split(/\r?\n/)
