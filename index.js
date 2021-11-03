@@ -53,7 +53,9 @@ async function main() {
         }
         fs.mkdirSync(rootDir + context, {recursive: true});
 
-        execSync("kubectl config use-context " + context);
+        if (context !== "current") { // support cluster service accounts
+            execSync("kubectl config use-context " + context);
+        }
 
         const tablesStr = execSync("kubectl api-resources -o wide").toString();
 
@@ -256,7 +258,7 @@ function parseCmdLine() {
     return yargs(process.argv.slice(2))
         .option('context', {
             alias: 'c',
-            description: 'Specify contexts. If omitted - use all available',
+            description: 'Specify contexts. If omitted - use all available. If specifying "current", it will use the currently configured one (required for cluster svc account kubectl access to work)',
             type: 'array'
         })
         .option('exclude-context', {
