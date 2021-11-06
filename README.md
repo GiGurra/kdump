@@ -9,7 +9,7 @@ Dumps all api-resources from all configured contexts.
 
 * Calls `kubectl api-resources` to figure out what it has access to, then starts downloading all of it using `kubectl get <resource> -o yaml > <file>`.
 
-*WARNING: also dumps secrets. If you use this in for example a backup script and then commit to git (my use case), be sure to put `*secret*` in your .gitignore (or encrypt them)*
+NOTE: also dumps secrets, if you explicitly tell it to do so and provide an encryption key
 
 
 ##### Options
