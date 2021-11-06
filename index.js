@@ -5,78 +5,7 @@ const fs = require("fs");
 const yaml = require('js-yaml');
 const yargs = require("yargs");
 const crypto = require('crypto');
-
 const tableParser = require('table-parser');
-
-function getExcludedResources(cmdLine) {
-    const excludedResources = cmdLine.er || [
-        "events",
-        "jobs",
-        "pods",
-        "componentstatuses",
-        "endpoints",
-        "endpointslices",
-        "replicasets",
-        "clusterauthtokens",
-        "clusteruserattributes",
-        "controllerrevisions",
-        "apiservices",
-        "clusterinformations",
-        //"customresourcedefinitions",
-        "felixconfigurations",
-        "ippools",
-        "nodes",
-        "priorityclasses",
-        "leases"
-    ];
-
-    return excludedResources;
-}
-
-function getContextsToBackUp(cmdLine) {
-    return (cmdLine.c || getContexts()).filter(c => {
-        return !cmdLine.ec || cmdLine.ec.indexOf(c) < 0
-    });
-}
-
-function deepCompare(o1, o2) {
-    return JSON.stringify(o1) === JSON.stringify(o2);
-}
-
-function getAllResources(excludedResources) {
-    return tableParser
-        .parse(execSync("kubectl api-resources -o wide").toString())
-        .map(toResource)
-        .filter(isReadableResource);
-}
-
-function getNamespacedResources(cmdLine, excludedResources) {
-    let nr;
-    if (cmdLine.nr) {
-        nr = cmdLine.nr.map(nr => { name: nr });
-    }
-    else {
-        nr = getAllResources().filter(r => r.namespaced);
-    }
-    return nr.filter(x => !isExcludedResource(x, excludedResources))
-}
-
-function getGlobalResources(cmdLine, excludedResources) {
-    let gr;
-    if (cmdLine.gr) {
-        gr = cmdLine.gr.map(nr => { name: nr });
-    }
-    else {
-        gr = getAllResources().filter(r => !r.namespaced);
-    }
-    return gr.filter(x => !isExcludedResource(x, excludedResources));
-}
-
-function getNamespaces(cmdLine) {
-    return (cmdLine.n || getNamespaces()).filter(n => {
-        return !cmdLine.en || cmdLine.en.indexOf(n) < 0
-    });
-}
 
 async function main() {
 
@@ -87,8 +16,7 @@ async function main() {
     const rootDir = cmdLine.o ? cmdLine.o + "/" : "";
     const contexts = getContextsToBackUp(cmdLine);
     const excludedResources = getExcludedResources(cmdLine);
-    const onlyCurrentContext = deepCompare(cmdLine.c, ['current']);
-
+    const isContextSwitching = !deepCompare(cmdLine.c, ['current']);
 
     console.log("contexts: " + contexts);
 
@@ -101,15 +29,13 @@ async function main() {
         }
         fs.mkdirSync(rootDir + context, {recursive: true});
 
-        if (!onlyCurrentContext) { // support cluster service accounts
+        if (isContextSwitching) {
             execSync("kubectl config use-context " + context);
         }
 
-        const namespacedResources = getNamespacedResources(cmdLine, excludedResources);
-        const globalResources = getGlobalResources(cmdLine, excludedResources);
         const namespaces = getNamespaces(cmdLine);
-
-        process.exit(0);
+        const globalResources = getGlobalResources(cmdLine, excludedResources);
+        const namespacedResources = getNamespacedResources(cmdLine, excludedResources);
 
         for (const namespace of namespaces) {
 
@@ -117,26 +43,26 @@ async function main() {
 
             fs.mkdirSync(rootDir + context + "/" + namespace, {recursive: true});
 
-            if (!onlyCurrentContext) { // support cluster service accounts
+            if (isContextSwitching) {
                 execSync("kubectl config set-context --current --namespace=" + namespace);
             }
 
             for (const namespacedResource of namespacedResources) {
 
-                const humanReadableTable = getNamespacedItemNames(namespace, namespacedResource.name);
+                const humanReadableTable = getNamespacedItemNames(namespace, namespacedResource);
 
                 if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
                     continue;
                 }
 
-                const resourceYaml = cleanUpKubernetesItemsYaml(execSync(`kubectl -n ${namespace} get ` + namespacedResource.name + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync(`kubectl -n ${namespace} get ` + namespacedResource + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
 
-                if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
+                if (namespacedResource === "secrets" && !cmdLine['include-secrets']) {
                     console.log("WARNING: Skipping resource 'secrets' as include-secrets was not set");
                     continue;
                 }
 
-                if (namespacedResource.name === "secrets" && cmdLine['encrypt-secrets']) {
+                if (namespacedResource === "secrets" && cmdLine['encrypt-secrets']) {
 
                     if (!cmdLine['encrypt-password']) {
                         throw new Error("Failed encrypting secrets: cmd line flag --encrypt-secrets set, but no --encrypt-password/-p value provided");
@@ -146,16 +72,15 @@ async function main() {
                         throw new Error("Failed encrypting secrets: cmd line flag --encrypt-algorithm empty");
                     }
 
-                    const algorithm = cmdLine['encrypt-algorithm'];
                     const key = Buffer.from(cmdLine['encrypt-password'], 'hex');
-
+                    const algorithm = cmdLine['encrypt-algorithm'];
                     const prevDumpDir = cmdLine['prev-dump-dir'];
 
                     if (prevDumpDir) {
                         if (fs.existsSync(prevDumpDir)) {
                             if (fs.existsSync(prevDumpDir + "/" + context + "/" + namespace)) {
                                 const filesInOldDir = fs.readdirSync(prevDumpDir + "/" + context + "/" + namespace);
-                                const oldFileIndex = filesInOldDir.findIndex(f => f.startsWith(namespacedResource.name + ".iv=") && f.endsWith(".yml"));
+                                const oldFileIndex = filesInOldDir.findIndex(f => f.startsWith(namespacedResource + ".iv=") && f.endsWith(".yml"));
                                 if (oldFileIndex >= 0) {
 
                                     const oldFileKey = key;
@@ -183,9 +108,9 @@ async function main() {
                     const iv = crypto.randomBytes(16);
                     const encryptedData = encrypt(resourceYaml, key, iv, algorithm);
 
-                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".iv=" + iv.toString("hex") + ".yml", encryptedData);
+                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource + ".iv=" + iv.toString("hex") + ".yml", encryptedData);
                 } else {
-                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".yml", resourceYaml);
+                    fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource + ".yml", resourceYaml);
                 }
 
             }
@@ -200,87 +125,20 @@ async function main() {
 
             for (const globalResource of globalResources) {
 
-                const humanReadableTable = getGlobalItemNames(globalResource.name);
+                const humanReadableTable = getGlobalItemNames(globalResource);
 
                 if (humanReadableTable.length === 0 && !cmdLine['include-empty-resources']) {
                     continue;
                 }
 
-                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
-                fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + globalResource + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
+                fs.writeFileSync(rootDir + context + "/" + globalResource + ".yml", resourceYaml)
             }
 
         }
     }
 
     console.log("kube-dump script finished!")
-}
-
-function cleanUpKubernetesItemsYaml(itemsString) {
-
-    // TODO: Make this configurable
-
-    const data = yaml.load(itemsString);
-
-    for (const item of data.items) {
-
-        // remove things we simply dont want
-        delete item['lastRefresh'];
-        delete item['status'];
-
-        // clean up metadata
-        if (item['metadata']) {
-            delete item['metadata']['generation'];
-            delete item['metadata']['resourceVersion'];
-            if (item['metadata']['annotations']) {
-                delete item['metadata']['annotations']['control-plane.alpha.kubernetes.io/leader'];
-                delete item['metadata']['annotations']['deployment.kubernetes.io/revision'];
-                delete item['metadata']['annotations']['cattle.io/timestamp'];
-            }
-        }
-
-        // clean up spec
-        if (item['spec']) {
-
-            delete item['spec']['renewTime'];
-
-            if (item['spec']['template']) {
-                if (item['spec']['template']['metadata']) {
-                    if (item['spec']['template']['metadata']['annotations']) {
-                        delete item['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
-                        delete item['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
-                    }
-                }
-            }
-
-            if (item['spec']['jobTemplate']) {
-                if (item['spec']['jobTemplate']['spec']) {
-                    if (item['spec']['jobTemplate']['spec']['template']) {
-                        if (item['spec']['jobTemplate']['spec']['template']['metadata']) {
-                            if (item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']) {
-                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
-                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return yaml.dump(data);
-}
-
-function decrypt(encryptedData, key, iv, algorithm) {
-    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
-    const decrypted = decipher.update(encryptedData);
-    return Buffer.concat([decrypted, decipher.final()]);
-}
-
-function encrypt(text, key, iv, algorithm) {
-    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
-    const encrypted = cipher.update(text);
-    return Buffer.concat([encrypted, cipher.final()]);
 }
 
 function parseCmdLine() {
@@ -295,7 +153,7 @@ function parseCmdLine() {
             description: 'Exclude contexts',
             type: 'array'
         })
-        .option('namespace', {
+        .option('namespaces', {
             alias: 'n',
             description: 'Specify namespaces. If omitted - use all available',
             type: 'array',
@@ -369,6 +227,141 @@ function parseCmdLine() {
         .argv;
 }
 
+function getExcludedResources(cmdLine) {
+    return cmdLine.er || [
+        "events",
+        "jobs",
+        "pods",
+        "componentstatuses",
+        "endpoints",
+        "endpointslices",
+        "replicasets",
+        "clusterauthtokens",
+        "clusteruserattributes",
+        "controllerrevisions",
+        "apiservices",
+        "clusterinformations",
+        //"customresourcedefinitions",
+        "felixconfigurations",
+        "ippools",
+        "nodes",
+        "priorityclasses",
+        "leases"
+    ];
+}
+
+function getContextsToBackUp(cmdLine) {
+    return (cmdLine.c || getContexts()).filter(c => {
+        return !cmdLine.ec || cmdLine.ec.indexOf(c) < 0
+    });
+}
+
+function deepCompare(o1, o2) {
+    return JSON.stringify(o1) === JSON.stringify(o2);
+}
+
+function getAllResources(excludedResources) {
+    return tableParser
+        .parse(execSync("kubectl api-resources -o wide").toString())
+        .map(toResource)
+        .filter(isReadableResource);
+}
+
+function getNamespacedResources(cmdLine, excludedResources) {
+    let nr;
+    if (cmdLine.nr) {
+        nr = cmdLine.nr.map(nr => { return { name: nr } });
+    }
+    else {
+        nr = getAllResources().filter(r => r.namespaced);
+    }
+    return nr.filter(x => !isExcludedResource(x, excludedResources)).map(r => r.name);
+}
+
+function getGlobalResources(cmdLine, excludedResources) {
+    let gr;
+    if (cmdLine.gr) {
+        gr = cmdLine.gr.map(gr => { return { name: gr } });
+    }
+    else {
+        gr = getAllResources().filter(r => !r.namespaced);
+    }
+    return gr.filter(x => !isExcludedResource(x, excludedResources)).map(r => r.name);
+}
+
+function getNamespaces(cmdLine) {
+    return (cmdLine.n || getAllNamespaces()).filter(n => {
+        return !cmdLine.en || cmdLine.en.indexOf(n) < 0
+    });
+}
+
+function cleanUpKubernetesItemsYaml(itemsString) {
+
+    // TODO: Make this configurable
+
+    const data = yaml.load(itemsString);
+
+    for (const item of data.items) {
+
+        // remove things we simply dont want
+        delete item['lastRefresh'];
+        delete item['status'];
+
+        // clean up metadata
+        if (item['metadata']) {
+            delete item['metadata']['generation'];
+            delete item['metadata']['resourceVersion'];
+            if (item['metadata']['annotations']) {
+                delete item['metadata']['annotations']['control-plane.alpha.kubernetes.io/leader'];
+                delete item['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                delete item['metadata']['annotations']['cattle.io/timestamp'];
+            }
+        }
+
+        // clean up spec
+        if (item['spec']) {
+
+            delete item['spec']['renewTime'];
+
+            if (item['spec']['template']) {
+                if (item['spec']['template']['metadata']) {
+                    if (item['spec']['template']['metadata']['annotations']) {
+                        delete item['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                        delete item['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
+                    }
+                }
+            }
+
+            if (item['spec']['jobTemplate']) {
+                if (item['spec']['jobTemplate']['spec']) {
+                    if (item['spec']['jobTemplate']['spec']['template']) {
+                        if (item['spec']['jobTemplate']['spec']['template']['metadata']) {
+                            if (item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']) {
+                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['deployment.kubernetes.io/revision'];
+                                delete item['spec']['jobTemplate']['spec']['template']['metadata']['annotations']['cattle.io/timestamp'];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return yaml.dump(data);
+}
+
+function decrypt(encryptedData, key, iv, algorithm) {
+    const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);
+    const decrypted = decipher.update(encryptedData);
+    return Buffer.concat([decrypted, decipher.final()]);
+}
+
+function encrypt(text, key, iv, algorithm) {
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+    const encrypted = cipher.update(text);
+    return Buffer.concat([encrypted, cipher.final()]);
+}
+
 function isReadableResource(resource) {
     return resource.verbs.indexOf('get') >= 0;
 }
@@ -415,7 +408,7 @@ function getGlobalItemNames(resourceName) {
         .filter(x => x.length > 0);
 }
 
-function getNamespaces() {
+function getAllNamespaces() {
     return execSync("kubectl get namespaces -o name")
         .toString()
         .trim()
