@@ -11,5 +11,5 @@ PACKAGE_VERSION=$(cat package.json \
 
 echo $PACKAGE_VERSION
 
-DOCKER_BUILDKIT=1 docker build . -t gigurra/kdump:$PACKAGE_VERSION
+DOCKER_BUILDKIT=1 docker build --no-cache . -t gigurra/kdump:$PACKAGE_VERSION
 
