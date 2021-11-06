@@ -8,12 +8,8 @@ const crypto = require('crypto');
 
 const tableParser = require('table-parser');
 
-async function main() {
-
-    const cmdLine = parseCmdLine();
-
-    // Make this configurable
-    const ignoredTypes = [
+function getExcludedResources(cmdLine) {
+    const excludedResources = cmdLine.er || [
         "events",
         "jobs",
         "pods",
@@ -34,13 +30,65 @@ async function main() {
         "leases"
     ];
 
-    console.log("Running kube-dump script");
+    return excludedResources;
+}
 
-    const contexts = (cmdLine.c || getContexts()).filter( c => {
+function getContextsToBackUp(cmdLine) {
+    return (cmdLine.c || getContexts()).filter(c => {
         return !cmdLine.ec || cmdLine.ec.indexOf(c) < 0
     });
+}
+
+function deepCompare(o1, o2) {
+    return JSON.stringify(o1) === JSON.stringify(o2);
+}
+
+function getAllResources(excludedResources) {
+    return tableParser
+        .parse(execSync("kubectl api-resources -o wide").toString())
+        .map(toResource)
+        .filter(isReadableResource);
+}
+
+function getNamespacedResources(cmdLine, excludedResources) {
+    let nr;
+    if (cmdLine.nr) {
+        nr = cmdLine.nr.map(nr => { name: nr });
+    }
+    else {
+        nr = getAllResources().filter(r => r.namespaced);
+    }
+    return nr.filter(x => !isExcludedResource(x, excludedResources))
+}
+
+function getGlobalResources(cmdLine, excludedResources) {
+    let gr;
+    if (cmdLine.gr) {
+        gr = cmdLine.gr.map(nr => { name: nr });
+    }
+    else {
+        gr = getAllResources().filter(r => !r.namespaced);
+    }
+    return gr.filter(x => !isExcludedResource(x, excludedResources));
+}
+
+function getNamespaces(cmdLine) {
+    return (cmdLine.n || getNamespaces()).filter(n => {
+        return !cmdLine.en || cmdLine.en.indexOf(n) < 0
+    });
+}
+
+async function main() {
+
+    console.log("Running kube-dump script");
+
+    const cmdLine = parseCmdLine();
 
     const rootDir = cmdLine.o ? cmdLine.o + "/" : "";
+    const contexts = getContextsToBackUp(cmdLine);
+    const excludedResources = getExcludedResources(cmdLine);
+    const onlyCurrentContext = deepCompare(cmdLine.c, ['current']);
+
 
     console.log("contexts: " + contexts);
 
@@ -53,33 +101,15 @@ async function main() {
         }
         fs.mkdirSync(rootDir + context, {recursive: true});
 
-        if (context !== "current") { // support cluster service accounts
+        if (!onlyCurrentContext) { // support cluster service accounts
             execSync("kubectl config use-context " + context);
         }
 
-        const tablesStr = execSync("kubectl api-resources -o wide").toString();
+        const namespacedResources = getNamespacedResources(cmdLine, excludedResources);
+        const globalResources = getGlobalResources(cmdLine, excludedResources);
+        const namespaces = getNamespaces(cmdLine);
 
-        const allResources =
-            tableParser
-                .parse(tablesStr)
-                .map(toResource)
-                .filter(isReadableResource)
-                .filter(x => !isIgnoredResource(x, ignoredTypes))
-                .filter(r => !cmdLine.er || cmdLine.er.indexOf(r.name) < 0);
-
-        const namespacedResources =
-            allResources
-                .filter(r => r.namespaced)
-                .filter(r => !cmdLine.nr || cmdLine.nr.indexOf(r.name) >= 0);
-
-        const globalResources =
-            allResources
-                .filter(r => !r.namespaced)
-                .filter(r => !cmdLine.gr || cmdLine.gr.indexOf(r.name) >= 0);
-
-        const namespaces = (cmdLine.n || getNamespaces()).filter(n => {
-            return !cmdLine.en || cmdLine.en.indexOf(n) < 0
-        });
+        process.exit(0);
 
         for (const namespace of namespaces) {
 
@@ -87,7 +117,7 @@ async function main() {
 
             fs.mkdirSync(rootDir + context + "/" + namespace, {recursive: true});
 
-            if (context !== "current") { // support cluster service accounts
+            if (!onlyCurrentContext) { // support cluster service accounts
                 execSync("kubectl config set-context --current --namespace=" + namespace);
             }
 
@@ -99,7 +129,7 @@ async function main() {
                     continue;
                 }
 
-                const resourceYaml = cleanUpKubernetesItemsYaml(execSync(`kubectl -n ${namespace} get ` + namespacedResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync(`kubectl -n ${namespace} get ` + namespacedResource.name + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
 
                 if (namespacedResource.name === "secrets" && !cmdLine['include-secrets']) {
                     console.log("WARNING: Skipping resource 'secrets' as include-secrets was not set");
@@ -145,8 +175,7 @@ async function main() {
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             console.error("WARNING: --prev-dump-dir given, but specified directory does not exist!");
                         }
                     }
@@ -155,8 +184,7 @@ async function main() {
                     const encryptedData = encrypt(resourceYaml, key, iv, algorithm);
 
                     fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".iv=" + iv.toString("hex") + ".yml", encryptedData);
-                }
-                else {
+                } else {
                     fs.writeFileSync(rootDir + context + "/" + namespace + "/" + namespacedResource.name + ".yml", resourceYaml);
                 }
 
@@ -166,8 +194,7 @@ async function main() {
 
         if (cmdLine.eg) {
             console.log("   - NOT processing global resources for context, since --eg flag was specified");
-        }
-        else {
+        } else {
 
             console.log("   - processing global resources for context");
 
@@ -179,7 +206,7 @@ async function main() {
                     continue;
                 }
 
-                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100*1024*1024}).toString());
+                const resourceYaml = cleanUpKubernetesItemsYaml(execSync("kubectl get " + globalResource.name + " -o yaml", {maxBuffer: 100 * 1024 * 1024}).toString());
                 fs.writeFileSync(rootDir + context + "/" + globalResource.name + ".yml", resourceYaml)
             }
 
@@ -346,7 +373,7 @@ function isReadableResource(resource) {
     return resource.verbs.indexOf('get') >= 0;
 }
 
-function isIgnoredResource(resource, ignoreList) {
+function isExcludedResource(resource, ignoreList) {
     return ignoreList.indexOf(resource.name) >= 0;
 }
 
@@ -357,7 +384,7 @@ function toResource(tableResource) {
     //out.apiGroup = tableResource.APIGROUP.toString();
     out.namespaced = tableResource.NAMESPACED.toString() === "true";
     out.kind = tableResource.NAMESPACED.toString();
-    out.verbs = tableResource.VERBS.toString().slice(1, tableResource.VERBS.toString().length-1).split(',');
+    out.verbs = tableResource.VERBS.toString().slice(1, tableResource.VERBS.toString().length - 1).split(',');
     return out
 }
 
@@ -371,7 +398,7 @@ function getContexts() {
 }
 
 function getNamespacedItemNames(namespace, resourceName) {
-    return execSync(`kubectl -n ${namespace} get ` + resourceName + " -o name", {maxBuffer: 100*1024*1024})
+    return execSync(`kubectl -n ${namespace} get ` + resourceName + " -o name", {maxBuffer: 100 * 1024 * 1024})
         .toString()
         .trim()
         .split(/\r?\n/)
@@ -380,7 +407,7 @@ function getNamespacedItemNames(namespace, resourceName) {
 }
 
 function getGlobalItemNames(resourceName) {
-    return execSync(`kubectl get ` + resourceName + " -o name", {maxBuffer: 100*1024*1024})
+    return execSync(`kubectl get ` + resourceName + " -o name", {maxBuffer: 100 * 1024 * 1024})
         .toString()
         .trim()
         .split(/\r?\n/)
