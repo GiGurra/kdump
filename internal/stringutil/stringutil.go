@@ -17,6 +17,14 @@ func SplitLines(s string) []string {
 	return lines
 }
 
+func TrimSpaces(lines []string) []string {
+	return funk.Map(lines, func(in string) string { return strings.TrimSpace(in) }).([]string)
+}
+
+func RemoveEmptyLines(lines []string) []string {
+	return funk.FilterString(TrimSpaces(lines), func(in string) bool { return len(in) > 0 })
+}
+
 func RemoveUpToAndIncluding(fullString string, key string) string {
 	idx := strings.Index(fullString, key)
 	if idx >= 0 {

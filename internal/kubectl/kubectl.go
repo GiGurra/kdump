@@ -20,6 +20,12 @@ func CurrentContext() string {
 	return runCommand("config", "current-context")
 }
 
+func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
+	// kubectl -n ${namespace} get ` + resourceName + " -o name"
+	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
+	return stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
+}
+
 type ApiResourceType struct {
 	Name       string
 	ShortNames []string

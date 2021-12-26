@@ -39,4 +39,21 @@ func dumpCurrentContext(outputDir string) {
 	}
 	log.Printf("\n")
 
+	for _, namespace := range namespaces {
+
+		fileutil.CreateFolderOrPanic(outputDir+"/"+namespace, "could not create output dir for namespace "+namespace)
+
+		for _, namespaceResourceType := range apiResourceTypes.Accessible.Namespaced {
+			items := kubectl.ListNamespacedResourcesOfType(namespace, namespaceResourceType.Name)
+			if len(items) == 0 {
+				continue
+			}
+			itemDir := outputDir + "/" + namespace + "/" + namespaceResourceType.Name
+			fileutil.CreateFolderOrPanic(itemDir, "could not create output dir for namespace resource "+namespaceResourceType.Name)
+			for _, item := range items {
+				log.Printf("Storing item %v in folder %v", item, itemDir)
+			}
+		}
+	}
+
 }
