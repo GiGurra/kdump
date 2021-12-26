@@ -33,6 +33,8 @@ func getDefaultExcludedResourceTypes() []string {
 		"priorityclasses",
 		"ciliumendpoints",
 		"leases",
+		"certificaterequests",
+		"orders",
 	}
 }
 
