@@ -21,15 +21,17 @@ def dumpCurrentContext(appConfig: AppConfig): Unit =
 
   println(s"Downloading all resources from current context to dir '$outputDir'")
 
+  // Do all of these in parallel
   val namespacesOp = async.run(kubectl.namespaces())
   val allResourceTypeNamesOp = async.run(kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded))
   val globalResourceTypeNamesOp = async.run(kubectl.globalResourceTypeNames().filter(appConfig.isResourceIncluded))
   val namespacedResourceTypeNamesOp = async.run(kubectl.namespacedResourceTypeNames().filter(appConfig.isResourceIncluded))
 
-  lazy val namespaces = async.await(namespacesOp)
-  lazy val allResourceTypeNames = async.await(allResourceTypeNamesOp)
-  lazy val globalResourceTypeNames = async.await(globalResourceTypeNamesOp)
-  lazy val namespacedResourceTypeNames = async.await(namespacedResourceTypeNamesOp)
+  // Gather the results of parallel computations
+  lazy val namespaces = namespacesOp.join
+  lazy val allResourceTypeNames = allResourceTypeNamesOp.join
+  lazy val globalResourceTypeNames = globalResourceTypeNamesOp.join
+  lazy val namespacedResourceTypeNames = namespacedResourceTypeNamesOp.join
 
   println(namespaces)
   println()
