@@ -8,6 +8,8 @@ import (
 	"kdump/internal/stringutil"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -43,27 +45,28 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 
 	type ApiResource struct {
 		name       string
-		shortNames string
-		namespaced string
+		shortNames []string
+		namespaced bool
 		kind       string
-		verbs      string
+		verbs      []string
 	}
 
 	apiRsrcsStr := kubectl.ApiResources()
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(apiRsrcsStr)
 
 	apiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
-
-		name := getMapStrValOrEmpty(in, "NAME")
-		shortNames := getMapStrValOrEmpty(in, "SHORTNAMES")
-		namespaced := getMapStrValOrEmpty(in, "NAMESPACED")
-		kind := getMapStrValOrEmpty(in, "KIND")
-		verbs := getMapStrValOrEmpty(in, "VERBS")
-
-		return ApiResource{name, shortNames, namespaced, kind, verbs}
+		return ApiResource{
+			name:       getMapStrValOrEmpty(in, "NAME"),
+			shortNames: csvStr2arr(getMapStrValOrEmpty(in, "SHORTNAMES")),
+			namespaced: str2bool(getMapStrValOrEmpty(in, "NAMESPACED")),
+			kind:       getMapStrValOrEmpty(in, "KIND"),
+			verbs:      wierdKubectlArray2arr(getMapStrValOrEmpty(in, "VERBS")),
+		}
 	}).([]ApiResource)
 
-	log.Printf("apiResources: %+v ...\n", apiResources)
+	for _, resource := range apiResources {
+		log.Printf("resource: %+v \n", resource)
+	}
 }
 
 func getMapStrValOrEmpty(dict map[string]string, key string) string {
@@ -74,12 +77,24 @@ func getMapStrValOrEmpty(dict map[string]string, key string) string {
 	}
 }
 
-/*
-func str2bool(str string) string {
-	if val, ok := dict[key]; ok {
+func str2bool(str string) bool {
+	if val, err := strconv.ParseBool(str); err == nil {
 		return val
 	} else {
-		return ""
+		return true
 	}
 }
-*/
+
+func csvStr2arrSep(str string, sep string) []string {
+	return stringutil.MapStrArray(strings.Split(str, sep), func(in string) string {
+		return strings.TrimSpace(in)
+	})
+}
+
+func csvStr2arr(str string) []string {
+	return csvStr2arrSep(str, ",")
+}
+
+func wierdKubectlArray2arr(strIn string) []string {
+	return csvStr2arrSep(strIn[1:(len(strIn)-1)], " ")
+}
