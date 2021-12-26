@@ -15,12 +15,8 @@ object async {
     await(f.op)
 
   case class asyncOp[T](op: Future[T]) {
-    def join(using ec: ExecutionContext): T = this : T
+    def join(using ec: ExecutionContext): T = this: T
   }
 
-  object asyncOp {
-    inline given asyncOp2Val[T](using ec: ExecutionContext): Conversion[asyncOp[T], T] = new Conversion[asyncOp[T], T] {
-      override def apply(x: asyncOp[T]): T = await(x)
-    }
-  }
+  given asyncOp2Val[T](using ec: ExecutionContext): Conversion[asyncOp[T], T] = x => await(x)
 }
