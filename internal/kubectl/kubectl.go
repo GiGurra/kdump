@@ -1,20 +1,14 @@
 package kubectl
 
 import (
-	"github.com/thoas/go-funk"
 	"kdump/internal/shell"
 	"kdump/internal/stringutil"
 	"os/exec"
 	"strings"
 )
 
-func removeK8sResourcePrefix(in string) string {
-	return stringutil.RemoveUpToAndIncluding(in, "/")
-}
-
 func Namespaces() []string {
-	arr := stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name"))
-	return funk.Map(arr, removeK8sResourcePrefix).([]string)
+	return stringutil.MapStrArray(stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
 }
 
 func CurrentNamespace() string {
@@ -23,6 +17,10 @@ func CurrentNamespace() string {
 
 func CurrentContext() string {
 	return runCommand("config", "current-context")
+}
+
+func ApiResources() string {
+	return runCommand("api-resources")
 }
 
 func runCommand(args ...string) string {
@@ -41,4 +39,8 @@ func runCommand(args ...string) string {
 	}
 
 	return strings.TrimSpace(string(outputBytes))
+}
+
+func removeK8sResourcePrefix(in string) string {
+	return stringutil.RemoveUpToAndIncluding(in, "/")
 }

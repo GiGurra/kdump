@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
+	"kdump/internal/stringutil"
 	"log"
 	"os"
 )
@@ -38,5 +39,8 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 
 	namespaces := kubectl.Namespaces()
 	log.Printf("Namespaces: %v ...\n", namespaces)
+
+	apiRsrcsStr := kubectl.ApiResources()
+	stringutil.ParseStdOutTable(apiRsrcsStr)
 
 }
