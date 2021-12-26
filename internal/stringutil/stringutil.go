@@ -2,7 +2,6 @@ package stringutil
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/thoas/go-funk"
 	"strings"
 	"unicode"
@@ -37,15 +36,14 @@ type StdOutTableColumn struct {
 	maxByteLen int
 }
 
-func ParseStdOutTable(table string) string {
+func ParseStdOutTable(table string) ([]StdOutTableColumn, []map[string]string) {
 	lines := SplitLines(table)
 	headingLine := lines[0]
-	//dataLines := lines[1:]
+	dataLines := funk.FilterString(lines[1:], func(in string) bool {
+		return len(strings.TrimSpace(in)) > 0
+	})
 
 	beginIndices := make([]int, 0)
-
-	fmt.Printf("len(lines): %d \n", len(lines))
-	fmt.Printf("headingLine: %v \n", headingLine)
 
 	prevIsSpace := true
 	for i, r := range headingLine {
@@ -56,8 +54,7 @@ func ParseStdOutTable(table string) string {
 	}
 
 	headings := make([]StdOutTableColumn, 0)
-	for i, _ := range beginIndices {
-		beginIndex := beginIndices[i]
+	for i, beginIndex := range beginIndices {
 		endIndex := len(headingLine)
 		if i+1 < len(beginIndices) {
 			endIndex = beginIndices[i+1] - 1
@@ -66,9 +63,20 @@ func ParseStdOutTable(table string) string {
 		headings = append(headings, StdOutTableColumn{name, beginIndex, endIndex - beginIndex})
 	}
 
-	fmt.Printf("beginIndices: %v \n", beginIndices)
-	fmt.Printf("headings: %+v \n", headings)
-	//	fmt.Printf("dataLines: %v \n", dataLines)
+	lineValues := make([]map[string]string, 0)
 
-	return ""
+	for _, dataLine := range dataLines {
+		lineValue := make(map[string]string, 0)
+		for _, heading := range headings {
+			endIndex := (heading.byteIndex + heading.maxByteLen)
+			if endIndex+1 >= len(dataLine) {
+				endIndex = len(dataLine)
+			}
+			lineValue[heading.name] = strings.TrimSpace(dataLine[heading.byteIndex:endIndex])
+		}
+		lineValues = append(lineValues, lineValue)
+
+	}
+
+	return headings, lineValues
 }
