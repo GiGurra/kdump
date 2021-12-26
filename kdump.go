@@ -43,18 +43,33 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 
 	type ApiResource struct {
 		name       string
-		shortNames []string
-		namespaced bool
+		shortNames string
+		namespaced string
 		kind       string
-		verbs      []string
+		verbs      string
 	}
 
 	apiRsrcsStr := kubectl.ApiResources()
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(apiRsrcsStr)
 
 	apiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
-		return ApiResource{}
+
+		name := getMapStrValOrEmpty(in, "NAME")
+		shortNames := getMapStrValOrEmpty(in, "SHORTNAMES")
+		namespaced := getMapStrValOrEmpty(in, "NAMESPACED")
+		kind := getMapStrValOrEmpty(in, "KIND")
+		verbs := getMapStrValOrEmpty(in, "VERBS")
+
+		return ApiResource{name, shortNames, namespaced, kind, verbs}
 	}).([]ApiResource)
 
 	log.Printf("apiResources: %+v ...\n", apiResources)
+}
+
+func getMapStrValOrEmpty(dict map[string]string, key string) string {
+	if val, ok := dict[key]; ok {
+		return val
+	} else {
+		return ""
+	}
 }
