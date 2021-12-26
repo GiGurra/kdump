@@ -5,7 +5,7 @@ object kubectl {
   import scala.sys.process._
 
   def namespaces(): List[String] =
-    string.splitLines(runCommand("get", "namespaces", "-o", "name"))
+    runCommand2Lines("get", "namespaces", "-o", "name")
       .map(removeK8sResourcePrefix)
       .map(_.trim)
       .filter(_.nonEmpty)
@@ -21,21 +21,31 @@ object kubectl {
       panic("kubectl not on path!")
     ("kubectl" +: args).!!.trim
 
+  def runCommand2Lines(args: String*): List[String] =
+    runCommand(args: _*).linesIterator.toList
+
   def removeK8sResourcePrefix(in: String): String =
-    string.removeUpToAndIncluding(in, "/")
+    in.removeUpToAndIncluding("/")
 
   def resourceTypeNames(): List[String] =
-    string.splitLines(runCommand("api-resources", "-o", "name", "--verbs", "get"))
+    runCommand2Lines("api-resources", "-o", "name", "--verbs", "get")
       .map(_.trim)
       .filter(_.nonEmpty)
 
   def globalResourceTypeNames(): List[String] =
-    string.splitLines(runCommand("api-resources", "--namespaced=false", "-o", "name", "--verbs", "get"))
+    runCommand2Lines("api-resources", "--namespaced=false", "-o", "name", "--verbs", "get")
       .map(_.trim)
       .filter(_.nonEmpty)
 
   def namespacedResourceTypeNames(): List[String] =
-    string.splitLines(runCommand("api-resources", "--namespaced=true", "-o", "name", "--verbs", "get"))
+    runCommand2Lines("api-resources", "--namespaced=true", "-o", "name", "--verbs", "get")
       .map(_.trim)
       .filter(_.nonEmpty)
+
+  extension (fullString: String)
+    def removeUpToAndIncluding(key: String): String =
+      fullString.indexOf(key) match
+        case -1 => fullString
+        case index => fullString.drop(index + key.length)
+
 }
