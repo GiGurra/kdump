@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
-	"syscall"
+	"log"
 )
 
 func main() {
@@ -16,6 +17,13 @@ func main() {
 	fmt.Println(currentNamespace)
 	fmt.Println(namespaces)
 
-	syscall.Exit(0)
+	dumpCurrentContext("cx")
 
+}
+
+func dumpCurrentContext(outputDir string) {
+
+	fileutil.PanicIfExists(outputDir, fmt.Sprintf("output folder '%s' already exists!", outputDir), fmt.Sprintf("output folder '%s' inaccessible!", outputDir))
+
+	log.Printf("Downloading all resources from current context to dir %s ...\n", outputDir)
 }
