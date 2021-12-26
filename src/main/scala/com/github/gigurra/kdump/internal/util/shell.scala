@@ -12,7 +12,7 @@ object shell {
 
     val entries: List[String] = sys.env("PATH").split(File.pathSeparatorChar).toList
 
-    def commandExistsInDir(dir: String): Boolean = new File(dir).listFiles().toList.exists(isMatch)
+    def commandExistsInDir(dir: String): Boolean = file.listFilesInDir(dir).exists(isMatch)
 
     def isMatch(file: File): Boolean =
 
