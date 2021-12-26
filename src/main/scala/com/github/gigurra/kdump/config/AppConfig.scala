@@ -29,6 +29,10 @@ object AppConfig {
   )
 
   def defaultExcludedResourceTypes: Set[String] = Set(
+    "limitranges",
+    "podtemplates",
+    "replicationcontrollers",
+    "resourcequotas",
     "events",
     "jobs",
     "jobs.batch",
