@@ -25,7 +25,10 @@ func main() {
 func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 
 	if allowOverwrite {
-		_ = os.RemoveAll(outputDir)
+		err := os.RemoveAll(outputDir)
+		if err != nil {
+			panic(fmt.Sprintf("removal of outputdir '%s' failed with err %v", outputDir, err))
+		}
 	}
 
 	fileutil.PanicIfExists(outputDir, fmt.Sprintf("output folder '%s' already exists!", outputDir), fmt.Sprintf("output folder '%s' inaccessible!", outputDir))
