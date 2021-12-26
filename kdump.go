@@ -41,18 +41,10 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 	namespaces := kubectl.Namespaces()
 	log.Printf("Namespaces: %v ...\n", namespaces)
 
-	type ApiResource struct {
-		name       string
-		shortNames []string
-		namespaced bool
-		kind       string
-		verbs      []string
-	}
-
 	apiRsrcsStr := kubectl.ApiResources()
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(apiRsrcsStr)
 
-	apiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
+	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
 		return ApiResource{
 			name:       stringutil.MapStrValOrElse(in, "NAME", ""),
 			shortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
@@ -62,7 +54,21 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 		}
 	}).([]ApiResource)
 
-	for _, resource := range apiResources {
+	accessibleApiResources := funk.Filter(allApiResources, isAccessible).([]ApiResource)
+
+	for _, resource := range accessibleApiResources {
 		log.Printf("resource: %+v \n", resource)
 	}
+}
+
+type ApiResource struct {
+	name       string
+	shortNames []string
+	namespaced bool
+	kind       string
+	verbs      []string
+}
+
+func isAccessible(r ApiResource) bool {
+	return funk.ContainsString(r.verbs, "get")
 }
