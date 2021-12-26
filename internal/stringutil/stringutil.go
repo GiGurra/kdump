@@ -31,6 +31,12 @@ func MapStrArray(arr []string, mapFn func(string) string) []string {
 	return funk.Map(arr, mapFn).([]string)
 }
 
+type StdOutTableColumn struct {
+	name       string
+	byteIndex  int
+	maxByteLen int
+}
+
 func ParseStdOutTable(table string) string {
 	lines := SplitLines(table)
 	headingLine := lines[0]
@@ -57,8 +63,17 @@ func ParseStdOutTable(table string) string {
 		endIndices = append(endIndices, len(headingLine))
 	}
 
+	headings := make([]StdOutTableColumn, 0)
+	for i, _ := range beginIndices {
+		beginIndex := beginIndices[i]
+		endIndex := endIndices[i]
+		name := headingLine[beginIndex:endIndex]
+		headings = append(headings, StdOutTableColumn{name, beginIndex, endIndex - beginIndex})
+	}
+
 	fmt.Printf("beginIndices: %v \n", beginIndices)
 	fmt.Printf("endIndices: %v \n", endIndices)
+	fmt.Printf("headings: %v \n", headings)
 	//	fmt.Printf("dataLines: %v \n", dataLines)
 
 	return ""
