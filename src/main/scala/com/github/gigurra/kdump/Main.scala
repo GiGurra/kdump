@@ -11,8 +11,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 def dumpCurrentContext(appConfig: AppConfig): Unit =
 
-  given ec: ExecutionContext = scala.concurrent.ExecutionContext.global
-
   val currentK8sContext = kubectl.currentContext()
   val outputDir = appConfig.outDir(currentK8sContext)
 

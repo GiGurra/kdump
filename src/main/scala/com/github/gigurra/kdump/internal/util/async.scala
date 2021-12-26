@@ -5,18 +5,15 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 
 object async {
 
-  def run[T](expr: => T)(using ec: ExecutionContext): asyncOp[T] =
+  def run[T](expr: => T)(using ec: ExecutionContext = ExecutionContext.global): asyncOp[T] =
     asyncOp(Future(expr)(ec))
 
-  def await[T](f: Future[T])(using ec: ExecutionContext): T =
-    Await.result(f, Duration.Inf)
-
-  def await[T](f: asyncOp[T])(using ec: ExecutionContext): T =
-    await(f.op)
+  def await[T](f: asyncOp[T])(using ec: ExecutionContext = ExecutionContext.global): T =
+    Await.result(f.op, Duration.Inf)
 
   case class asyncOp[T](op: Future[T]) {
-    def join(using ec: ExecutionContext): T = this: T
+    def join(using ec: ExecutionContext = ExecutionContext.global): T = this: T
   }
 
-  given asyncOp2Val[T](using ec: ExecutionContext): Conversion[asyncOp[T], T] = x => await(x)
+  given asyncOp2Val[T](using ec: ExecutionContext = ExecutionContext.global): Conversion[asyncOp[T], T] = x => await(x)
 }
