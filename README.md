@@ -1,15 +1,8 @@
-# kdump
-Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to files in yaml form.
+## sbt project compiled with Scala 3
 
-Quick and dirty hack. Don't expect pretty code :).
+### Usage
 
-##### *My use case: poor man's etcd -> git sync*
+This is a normal sbt project. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
 
-Dumps all api-resources from all configured contexts.
-
-* Calls `kubectl api-resources` to figure out what it has access to, then starts downloading all of it using `kubectl get <resource> -o yaml > <file>`.
-
-NOTE: also dumps secrets, if you explicitly tell it to do so and provide an encryption key
-
-### WARNING 
-This is a test branch for rewriting the entire thing in go. You have been warned
+For more information on the sbt-dotty plugin, see the
+[scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
