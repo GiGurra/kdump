@@ -11,17 +11,8 @@ import (
 )
 
 func main() {
-
 	currentContext := kubectl.CurrentContext()
-	currentNamespace := kubectl.CurrentNamespace()
-	namespaces := kubectl.Namespaces()
-
-	fmt.Println(currentContext)
-	fmt.Println(currentNamespace)
-	fmt.Println(namespaces)
-
-	dumpCurrentContext("cx", true)
-
+	dumpCurrentContext("test/"+currentContext, true)
 }
 
 func dumpCurrentContext(outputDir string, allowOverwrite bool) {
