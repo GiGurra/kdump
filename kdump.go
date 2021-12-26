@@ -7,23 +7,16 @@ import (
 	"kdump/internal/kubectl"
 	"kdump/internal/stringutil"
 	"log"
-	"os"
 )
 
 func main() {
 	currentContext := kubectl.CurrentContext()
-	dumpCurrentContext("test/"+currentContext, true)
+	dumpCurrentContext("test/" + currentContext)
 }
 
-func dumpCurrentContext(outputDir string, allowOverwrite bool) {
+func dumpCurrentContext(outputDir string) {
 
-	if allowOverwrite {
-		err := os.RemoveAll(outputDir)
-		if err != nil {
-			panic(fmt.Sprintf("removal of outputdir '%s' failed with err %v", outputDir, err))
-		}
-	}
-
+	fileutil.PanicIfCantDelete(outputDir, fmt.Sprintf("removal of outputdir '%s' failed", outputDir))
 	fileutil.PanicIfExists(outputDir, fmt.Sprintf("output folder '%s' already exists!", outputDir), fmt.Sprintf("output folder '%s' inaccessible!", outputDir))
 	fileutil.CreateFolderOrPanic(outputDir, fmt.Sprintf("could not create folder '%s'", outputDir))
 

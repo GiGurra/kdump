@@ -1,6 +1,15 @@
 package fileutil
 
-import "os"
+import (
+	"os"
+)
+
+func PanicIfCantDelete(path string, notDeterminableMsg string) {
+	err := os.RemoveAll(path)
+	if err != nil {
+		panic(notDeterminableMsg)
+	}
+}
 
 func PanicIfExists(path string, existsMsg string, notDeterminableMsg string) {
 
