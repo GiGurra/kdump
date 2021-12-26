@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/thoas/go-funk"
 	"strings"
+	"unicode"
 )
 
 func SplitLines(s string) []string {
@@ -35,8 +36,29 @@ func ParseStdOutTable(table string) string {
 	headingLine := lines[0]
 	//dataLines := lines[1:]
 
+	beginIndices := make([]int, 0)
+	endIndices := make([]int, 0)
+
 	fmt.Printf("len(lines): %d \n", len(lines))
 	fmt.Printf("headingLine: %v \n", headingLine)
+
+	prevIsSpace := true
+	for i, r := range headingLine {
+		if prevIsSpace && !unicode.IsSpace(r) {
+			beginIndices = append(beginIndices, i)
+		}
+		if !prevIsSpace && unicode.IsSpace(r) {
+			endIndices = append(endIndices, i)
+		}
+		prevIsSpace = unicode.IsSpace(r)
+	}
+
+	if len(endIndices) < len(beginIndices) {
+		endIndices = append(endIndices, len(headingLine))
+	}
+
+	fmt.Printf("beginIndices: %v \n", beginIndices)
+	fmt.Printf("endIndices: %v \n", endIndices)
 	//	fmt.Printf("dataLines: %v \n", dataLines)
 
 	return ""
