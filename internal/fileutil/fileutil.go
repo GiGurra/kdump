@@ -31,3 +31,11 @@ func CreateFolderOrPanic(path string, notPossibleMsg string) {
 		panic(notPossibleMsg)
 	}
 }
+
+func String2File(path string, data string) {
+	bytes := []byte(data)
+	err := os.WriteFile(path, bytes, 0644)
+	if err != nil {
+		panic("Failed writing to file '" + path + "' due to " + err.Error())
+	}
+}

@@ -21,9 +21,16 @@ func CurrentContext() string {
 }
 
 func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
-	// kubectl -n ${namespace} get ` + resourceName + " -o name"
 	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
-	return stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
+	itemsWithPrefixes := stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
+	return funk.Map(itemsWithPrefixes, func(in string) string {
+		return stringutil.RemoveUpToAndIncluding(in, "/")
+	}).([]string)
+}
+
+func DownloadResource(namespace string, resourceType string, resourceName string, format string) string {
+	rawString := runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format)
+	return rawString
 }
 
 type ApiResourceType struct {
