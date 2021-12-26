@@ -55,10 +55,22 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 	}).([]ApiResource)
 
 	accessibleApiResources := funk.Filter(allApiResources, isAccessible).([]ApiResource)
+	globalResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return !r.namespaced }).([]ApiResource)
+	namespacedResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return r.namespaced }).([]ApiResource)
+	log.Printf("\n")
 
-	for _, resource := range accessibleApiResources {
-		log.Printf("resource: %+v \n", resource)
+	log.Printf("global resources: \n")
+	for _, resource := range globalResources {
+		log.Printf("  resource: %+v \n", resource)
 	}
+	log.Printf("\n")
+
+	log.Printf("namespaced resources: \n")
+	for _, resource := range namespacedResources {
+		log.Printf("  resource: %+v \n", resource)
+	}
+	log.Printf("\n")
+
 }
 
 type ApiResource struct {
