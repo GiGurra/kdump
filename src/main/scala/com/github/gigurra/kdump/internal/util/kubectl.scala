@@ -24,5 +24,18 @@ object kubectl {
   def removeK8sResourcePrefix(in: String): String =
     string.removeUpToAndIncluding(in, "/")
 
+  def resourceTypeNames(): List[String] =
+    string.splitLines(runCommand("api-resources", "-o", "name", "--verbs", "get"))
+      .map(_.trim)
+      .filter(_.nonEmpty)
 
+  def globalResourceTypeNames(): List[String] =
+    string.splitLines(runCommand("api-resources", "--namespaced=false", "-o", "name", "--verbs", "get"))
+      .map(_.trim)
+      .filter(_.nonEmpty)
+
+  def namespacedResourceTypeNames(): List[String] =
+    string.splitLines(runCommand("api-resources", "--namespaced=true", "-o", "name", "--verbs", "get"))
+      .map(_.trim)
+      .filter(_.nonEmpty)
 }
