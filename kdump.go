@@ -73,3 +73,13 @@ func getMapStrValOrEmpty(dict map[string]string, key string) string {
 		return ""
 	}
 }
+
+/*
+func str2bool(str string) string {
+	if val, ok := dict[key]; ok {
+		return val
+	} else {
+		return ""
+	}
+}
+*/

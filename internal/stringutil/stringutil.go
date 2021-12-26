@@ -57,7 +57,7 @@ func ParseStdOutTable(table string) ([]StdOutTableColumn, []map[string]string) {
 	for i, beginIndex := range beginIndices {
 		endIndex := len(headingLine)
 		if i+1 < len(beginIndices) {
-			endIndex = beginIndices[i+1] - 1
+			endIndex = beginIndices[i+1]
 		}
 		name := strings.TrimSpace(headingLine[beginIndex:endIndex])
 		headings = append(headings, StdOutTableColumn{name, beginIndex, endIndex - beginIndex})
@@ -67,9 +67,9 @@ func ParseStdOutTable(table string) ([]StdOutTableColumn, []map[string]string) {
 
 	for _, dataLine := range dataLines {
 		lineValue := make(map[string]string, 0)
-		for _, heading := range headings {
+		for iHeading, heading := range headings {
 			endIndex := heading.byteIndex + heading.maxByteLen
-			if endIndex+1 >= len(dataLine) {
+			if iHeading+1 == len(headings) {
 				endIndex = len(dataLine)
 			}
 			lineValue[heading.name] = strings.TrimSpace(dataLine[heading.byteIndex:endIndex])
