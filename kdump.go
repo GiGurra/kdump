@@ -8,8 +8,6 @@ import (
 	"kdump/internal/stringutil"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 )
 
 func main() {
@@ -56,45 +54,15 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 
 	apiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
 		return ApiResource{
-			name:       getMapStrValOrEmpty(in, "NAME"),
-			shortNames: csvStr2arr(getMapStrValOrEmpty(in, "SHORTNAMES")),
-			namespaced: str2bool(getMapStrValOrEmpty(in, "NAMESPACED")),
-			kind:       getMapStrValOrEmpty(in, "KIND"),
-			verbs:      wierdKubectlArray2arr(getMapStrValOrEmpty(in, "VERBS")),
+			name:       stringutil.MapStrValOrElse(in, "NAME", ""),
+			shortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
+			namespaced: stringutil.Str2boolOrElse(stringutil.MapStrValOrElse(in, "NAMESPACED", ""), false),
+			kind:       stringutil.MapStrValOrElse(in, "KIND", ""),
+			verbs:      stringutil.WierdKubectlArray2arr(stringutil.MapStrValOrElse(in, "VERBS", "")),
 		}
 	}).([]ApiResource)
 
 	for _, resource := range apiResources {
 		log.Printf("resource: %+v \n", resource)
 	}
-}
-
-func getMapStrValOrEmpty(dict map[string]string, key string) string {
-	if val, ok := dict[key]; ok {
-		return val
-	} else {
-		return ""
-	}
-}
-
-func str2bool(str string) bool {
-	if val, err := strconv.ParseBool(str); err == nil {
-		return val
-	} else {
-		return true
-	}
-}
-
-func csvStr2arrSep(str string, sep string) []string {
-	return stringutil.MapStrArray(strings.Split(str, sep), func(in string) string {
-		return strings.TrimSpace(in)
-	})
-}
-
-func csvStr2arr(str string) []string {
-	return csvStr2arrSep(str, ",")
-}
-
-func wierdKubectlArray2arr(strIn string) []string {
-	return csvStr2arrSep(strIn[1:(len(strIn)-1)], " ")
 }

@@ -3,6 +3,7 @@ package stringutil
 import (
 	"bufio"
 	"github.com/thoas/go-funk"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -80,4 +81,34 @@ func ParseStdOutTable(table string) ([]StdOutTableColumn, []map[string]string) {
 	}
 
 	return headings, lineValues
+}
+
+func MapStrValOrElse(dict map[string]string, key string, fallback string) string {
+	if val, ok := dict[key]; ok {
+		return val
+	} else {
+		return fallback
+	}
+}
+
+func Str2boolOrElse(str string, fallback bool) bool {
+	if val, err := strconv.ParseBool(str); err == nil {
+		return val
+	} else {
+		return fallback
+	}
+}
+
+func CsvStr2arrSep(str string, sep string) []string {
+	return MapStrArray(strings.Split(str, sep), func(in string) string {
+		return strings.TrimSpace(in)
+	})
+}
+
+func CsvStr2arr(str string) []string {
+	return CsvStr2arrSep(str, ",")
+}
+
+func WierdKubectlArray2arr(strIn string) []string {
+	return CsvStr2arrSep(strIn[1:(len(strIn)-1)], " ")
 }
