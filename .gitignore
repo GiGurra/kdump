@@ -65,3 +65,7 @@ typings/
 
 test/
 test.old/
+
+kdump
+kdump.exe
+kdump.bin
