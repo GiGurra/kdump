@@ -1,12 +1,12 @@
 package com.github.gigurra.kdump.internal.util
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, blocking}
 
 object async {
 
   def run[T](expr: => T)(using ec: ExecutionContext = ExecutionContext.global): asyncOp[T] =
-    asyncOp(Future(expr)(ec))
+    asyncOp(Future(blocking(expr))(ec))
 
   def await[T](f: asyncOp[T])(using ec: ExecutionContext = ExecutionContext.global): T =
     Await.result(f.op, Duration.Inf)

@@ -33,26 +33,24 @@ def dumpCurrentContext(appConfig: AppConfig): Unit =
   lazy val globalResourceTypeNames = globalResourceTypeNamesOp.join
   lazy val namespacedResourceTypeNames = namespacedResourceTypeNamesOp.join
 
-  val ops = for namespace <- namespaces yield
+  for namespace <- namespaces do
     dumpNamespacedResources(outputDir, namespace, namespacedResourceTypeNames)
-
-  ops.foreach(_.join)
 
 
 def dumpNamespacedResources(outputDir: String,
                             namespace: String,
-                            namespacedResourceTypeNames: List[String]): async.asyncOp[Unit] =
+                            namespacedResourceTypeNames: List[String]): Unit =
 
-  async.run {
-    util.file.mkDirs(s"$outputDir/$namespace")
-    for resourceTypeName <- namespacedResourceTypeNames do
-      dumpNamespacedResources(outputDir, namespace, resourceTypeName)
-  }
+  println(s"processing namespace $namespace")
+  util.file.mkDirs(s"$outputDir/$namespace")
+  for resourceTypeName <- namespacedResourceTypeNames do
+    dumpNamespacedResources(outputDir, namespace, resourceTypeName)
 
 
 def dumpNamespacedResources(outputDir: String,
                             namespace: String,
                             resourceTypeName: String): Unit =
+  println(s"processing $namespace/$resourceTypeName")
   val resourceNames = kubectl.listNamespacedResourcesOfType(namespace, resourceTypeName)
   if resourceNames.nonEmpty then
     if resourceTypeName == "secrets" then
@@ -67,16 +65,10 @@ def dumpRegularNamespacedResources(outputDir: String,
   val itemDir = s"$outputDir/$namespace/$resourceTypeName"
   util.file.mkDirs(itemDir)
   for item <- resourceNames do
-    println("hej")
-
-/*
-for _
-, item := range resourceNames {
-resource := kubectl.DownloadNamespacedResource(namespace, resourceTypeName, item, "yaml")
-log.Printf("Storing item %v in folder %v", item, itemDir)
-fileutil.String2File(itemDir + "/" + fileutil.ReplaceInvalidChars(item) + ".yaml", resource)*/
-//}
-
+    val yamlSpec = kubectl.downloadNamespacedResource(namespace, resourceTypeName, item, "yaml")
+    val outFilePath = itemDir + "/" + util.file.sanitizeFileName(item) + ".yaml"
+    println(s"Storing $outFilePath")
+    util.file.string2File(outFilePath, yamlSpec)
 
 def dumpSecrets(outputDir: String,
                 namespace: String,

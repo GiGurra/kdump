@@ -3,10 +3,11 @@ package com.github.gigurra.kdump.internal.util
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
+import com.github.gigurra.kdump.internal.util.JavaDeleteFolder
 
 object file {
 
-  def delete(path: String): Unit = new File(path).delete()
+  def delete(path: String): Unit = JavaDeleteFolder.deleteDirectoryStream(Paths.get(path))
 
   def exists(path: String): Boolean = Files.exists(Paths.get(path))
 

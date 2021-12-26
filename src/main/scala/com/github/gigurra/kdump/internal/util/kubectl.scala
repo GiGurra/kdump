@@ -48,6 +48,12 @@ object kubectl {
       .filter(_.nonEmpty)
       .map(_.removeUpToAndIncluding("/"))
 
+  def downloadNamespacedResource(namespace: String, resourceType: String, resourceName: String, format: String): String =
+    runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format).trim
+
+  def downloadGlobalResource(resourceType: String, resourceName: String, format: String): String =
+    runCommand("get", resourceType, resourceName, "-o", format).trim
+
   extension (fullString: String)
     def removeUpToAndIncluding(key: String): String =
       fullString.indexOf(key) match
