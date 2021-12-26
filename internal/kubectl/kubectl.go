@@ -20,7 +20,7 @@ func CurrentContext() string {
 }
 
 func ApiResources() string {
-	return runCommand("api-resources")
+	return runCommand("api-resources", "-o", "wide")
 }
 
 func runCommand(args ...string) string {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/thoas/go-funk"
 	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
 	"kdump/internal/stringutil"
@@ -40,7 +41,20 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 	namespaces := kubectl.Namespaces()
 	log.Printf("Namespaces: %v ...\n", namespaces)
 
-	apiRsrcsStr := kubectl.ApiResources()
-	stringutil.ParseStdOutTable(apiRsrcsStr)
+	type ApiResource struct {
+		name       string
+		shortNames []string
+		namespaced bool
+		kind       string
+		verbs      []string
+	}
 
+	apiRsrcsStr := kubectl.ApiResources()
+	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(apiRsrcsStr)
+
+	apiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
+		return ApiResource{}
+	}).([]ApiResource)
+
+	log.Printf("apiResources: %+v ...\n", apiResources)
 }

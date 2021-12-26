@@ -68,7 +68,7 @@ func ParseStdOutTable(table string) ([]StdOutTableColumn, []map[string]string) {
 	for _, dataLine := range dataLines {
 		lineValue := make(map[string]string, 0)
 		for _, heading := range headings {
-			endIndex := (heading.byteIndex + heading.maxByteLen)
+			endIndex := heading.byteIndex + heading.maxByteLen
 			if endIndex+1 >= len(dataLine) {
 				endIndex = len(dataLine)
 			}
