@@ -70,5 +70,6 @@ test.old/
 target/
 
 kdump
+!kdump/
 kdump.exe
 kdump.bin
