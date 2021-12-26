@@ -42,6 +42,12 @@ object kubectl {
       .map(_.trim)
       .filter(_.nonEmpty)
 
+  def listNamespacedResourcesOfType(namespace: String, resourceTypeName: String): List[String] =
+    runCommand2Lines("-n", namespace, "get", resourceTypeName, "-o", "name")
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .map(_.removeUpToAndIncluding("/"))
+
   extension (fullString: String)
     def removeUpToAndIncluding(key: String): String =
       fullString.indexOf(key) match

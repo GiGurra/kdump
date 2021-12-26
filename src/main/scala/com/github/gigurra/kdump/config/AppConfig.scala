@@ -69,15 +69,15 @@ object AppConfig {
     "mutatingwebhookconfigurations.admissionregistration.k8s.io",
     "validatingwebhookconfigurations.admissionregistration.k8s.io",
     "certificatesigningrequests.certificates.k8s.io",
+    "ingresses.extensions",
+    "pods.metrics.k8s.io",
   )
 
   sealed trait SecretsHandling
 
   object SecretsHandling {
     object DontStore extends SecretsHandling
-
     object StoreAsPlainText extends SecretsHandling
-
     case class StoreEncrypted(encryption: String /*todo: impl*/) extends SecretsHandling
   }
 }

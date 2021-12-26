@@ -6,7 +6,7 @@ import java.nio.file.{Files, Paths}
 
 object file {
 
-  def delete(path: String): Unit = Files.deleteIfExists(Paths.get(path))
+  def delete(path: String): Unit = new File(path).delete()
 
   def exists(path: String): Boolean = Files.exists(Paths.get(path))
 
