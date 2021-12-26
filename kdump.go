@@ -54,7 +54,7 @@ func dumpCurrentContext(outputDir string, allowOverwrite bool) {
 		}
 	}).([]ApiResource)
 
-	accessibleApiResources := funk.Filter(allApiResources, isAccessible).([]ApiResource)
+	accessibleApiResources := funk.Filter(allApiResources, func(r ApiResource) bool { return funk.ContainsString(r.verbs, "get") }).([]ApiResource)
 	globalResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return !r.namespaced }).([]ApiResource)
 	namespacedResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return r.namespaced }).([]ApiResource)
 	log.Printf("\n")
@@ -79,8 +79,4 @@ type ApiResource struct {
 	namespaced bool
 	kind       string
 	verbs      []string
-}
-
-func isAccessible(r ApiResource) bool {
-	return funk.ContainsString(r.verbs, "get")
 }
