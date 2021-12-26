@@ -55,6 +55,20 @@ func dumpNamespacedResources(
 	}
 }
 
+func dumpRegularGlobalResources(
+	outputDir string,
+	resourceTypeName string,
+	resourceNames []string,
+) {
+	itemDir := outputDir + "/" + resourceTypeName
+	fileutil.CreateFolderOrPanic(itemDir, "could not create output dir for global resource "+resourceTypeName)
+	for _, item := range resourceNames {
+		resource := kubectl.DownloadGlobalResource(resourceTypeName, item, "yaml")
+		log.Printf("Storing item %v in folder %v", item, itemDir)
+		fileutil.String2File(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
+	}
+}
+
 func dumpRegularNamespacedResources(
 	outputDir string,
 	namespace string,
@@ -64,9 +78,9 @@ func dumpRegularNamespacedResources(
 	itemDir := outputDir + "/" + namespace + "/" + resourceTypeName
 	fileutil.CreateFolderOrPanic(itemDir, "could not create output dir for namespace resource "+resourceTypeName)
 	for _, item := range resourceNames {
-		resource := kubectl.DownloadResource(namespace, resourceTypeName, item, "yaml")
+		resource := kubectl.DownloadNamespacedResource(namespace, resourceTypeName, item, "yaml")
 		log.Printf("Storing item %v in folder %v", item, itemDir)
-		fileutil.String2File(itemDir+"/"+item+".yaml", resource)
+		fileutil.String2File(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
 	}
 }
 

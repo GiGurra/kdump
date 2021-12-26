@@ -1,7 +1,9 @@
 package fileutil
 
 import (
+	"log"
 	"os"
+	"regexp"
 )
 
 func PanicIfCantDelete(path string, notDeterminableMsg string) {
@@ -38,4 +40,16 @@ func String2File(path string, data string) {
 	if err != nil {
 		panic("Failed writing to file '" + path + "' due to " + err.Error())
 	}
+}
+
+func ReplaceInvalidChars(filename string) string {
+
+	// Make a Regex to say we only want letters and numbers
+	reg, err := regexp.Compile("[^a-zA-Z0-9\\-_.]+")
+	if err != nil {
+		log.Fatal(err)
+	}
+	processedString := reg.ReplaceAllString(filename, "_")
+
+	return processedString
 }

@@ -28,8 +28,13 @@ func ListNamespacedResourcesOfType(namespace string, resourceType string) []stri
 	}).([]string)
 }
 
-func DownloadResource(namespace string, resourceType string, resourceName string, format string) string {
+func DownloadNamespacedResource(namespace string, resourceType string, resourceName string, format string) string {
 	rawString := runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format)
+	return rawString
+}
+
+func DownloadGlobalResource(resourceType string, resourceName string, format string) string {
+	rawString := runCommand("get", resourceType, resourceName, "-o", format)
 	return rawString
 }
 
