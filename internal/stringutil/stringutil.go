@@ -43,7 +43,6 @@ func ParseStdOutTable(table string) string {
 	//dataLines := lines[1:]
 
 	beginIndices := make([]int, 0)
-	endIndices := make([]int, 0)
 
 	fmt.Printf("len(lines): %d \n", len(lines))
 	fmt.Printf("headingLine: %v \n", headingLine)
@@ -53,27 +52,22 @@ func ParseStdOutTable(table string) string {
 		if prevIsSpace && !unicode.IsSpace(r) {
 			beginIndices = append(beginIndices, i)
 		}
-		if !prevIsSpace && unicode.IsSpace(r) {
-			endIndices = append(endIndices, i)
-		}
 		prevIsSpace = unicode.IsSpace(r)
-	}
-
-	if len(endIndices) < len(beginIndices) {
-		endIndices = append(endIndices, len(headingLine))
 	}
 
 	headings := make([]StdOutTableColumn, 0)
 	for i, _ := range beginIndices {
 		beginIndex := beginIndices[i]
-		endIndex := endIndices[i]
-		name := headingLine[beginIndex:endIndex]
+		endIndex := len(headingLine)
+		if i+1 < len(beginIndices) {
+			endIndex = beginIndices[i+1] - 1
+		}
+		name := strings.TrimSpace(headingLine[beginIndex:endIndex])
 		headings = append(headings, StdOutTableColumn{name, beginIndex, endIndex - beginIndex})
 	}
 
 	fmt.Printf("beginIndices: %v \n", beginIndices)
-	fmt.Printf("endIndices: %v \n", endIndices)
-	fmt.Printf("headings: %v \n", headings)
+	fmt.Printf("headings: %+v \n", headings)
 	//	fmt.Printf("dataLines: %v \n", dataLines)
 
 	return ""
