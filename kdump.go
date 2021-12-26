@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/thoas/go-funk"
 	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
-	"kdump/internal/stringutil"
 	"log"
 )
 
@@ -25,42 +23,20 @@ func dumpCurrentContext(outputDir string) {
 	namespaces := kubectl.Namespaces()
 	log.Printf("Namespaces: %v ...\n", namespaces)
 
-	apiRsrcsStr := kubectl.ApiResources()
-	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(apiRsrcsStr)
+	apiResourceTypes := kubectl.ApiResourceTypes()
 
-	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResource {
-		return ApiResource{
-			name:       stringutil.MapStrValOrElse(in, "NAME", ""),
-			shortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
-			namespaced: stringutil.Str2boolOrElse(stringutil.MapStrValOrElse(in, "NAMESPACED", ""), false),
-			kind:       stringutil.MapStrValOrElse(in, "KIND", ""),
-			verbs:      stringutil.WierdKubectlArray2arr(stringutil.MapStrValOrElse(in, "VERBS", "")),
-		}
-	}).([]ApiResource)
-
-	accessibleApiResources := funk.Filter(allApiResources, func(r ApiResource) bool { return funk.ContainsString(r.verbs, "get") }).([]ApiResource)
-	globalResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return !r.namespaced }).([]ApiResource)
-	namespacedResources := funk.Filter(accessibleApiResources, func(r ApiResource) bool { return r.namespaced }).([]ApiResource)
 	log.Printf("\n")
 
 	log.Printf("global resources: \n")
-	for _, resource := range globalResources {
+	for _, resource := range apiResourceTypes.Accessible.Global {
 		log.Printf("  resource: %+v \n", resource)
 	}
 	log.Printf("\n")
 
 	log.Printf("namespaced resources: \n")
-	for _, resource := range namespacedResources {
+	for _, resource := range apiResourceTypes.Accessible.Namespaced {
 		log.Printf("  resource: %+v \n", resource)
 	}
 	log.Printf("\n")
 
-}
-
-type ApiResource struct {
-	name       string
-	shortNames []string
-	namespaced bool
-	kind       string
-	verbs      []string
 }

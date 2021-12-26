@@ -1,6 +1,7 @@
 package kubectl
 
 import (
+	"github.com/thoas/go-funk"
 	"kdump/internal/shell"
 	"kdump/internal/stringutil"
 	"os/exec"
@@ -19,8 +20,52 @@ func CurrentContext() string {
 	return runCommand("config", "current-context")
 }
 
-func ApiResources() string {
-	return runCommand("api-resources", "-o", "wide")
+type ApiResourceType struct {
+	Name       string
+	ShortNames []string
+	Namespaced bool
+	Kind       string
+	Verbs      []string
+}
+
+type ApiResourceTypesResponse struct {
+	All        []ApiResourceType
+	Accessible ApiResourceTypesAccessible
+}
+
+type ApiResourceTypesAccessible struct {
+	All        []ApiResourceType
+	Global     []ApiResourceType
+	Namespaced []ApiResourceType
+}
+
+func ApiResourceTypes() ApiResourceTypesResponse {
+	rawString := runCommand("api-resources", "-o", "wide")
+
+	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
+
+	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResourceType {
+		return ApiResourceType{
+			Name:       stringutil.MapStrValOrElse(in, "NAME", ""),
+			ShortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
+			Namespaced: stringutil.Str2boolOrElse(stringutil.MapStrValOrElse(in, "NAMESPACED", ""), false),
+			Kind:       stringutil.MapStrValOrElse(in, "KIND", ""),
+			Verbs:      stringutil.WierdKubectlArray2arr(stringutil.MapStrValOrElse(in, "VERBS", "")),
+		}
+	}).([]ApiResourceType)
+
+	accessibleApiResources := funk.Filter(allApiResources, func(r ApiResourceType) bool { return funk.ContainsString(r.Verbs, "get") }).([]ApiResourceType)
+	globalResources := funk.Filter(accessibleApiResources, func(r ApiResourceType) bool { return !r.Namespaced }).([]ApiResourceType)
+	namespacedResources := funk.Filter(accessibleApiResources, func(r ApiResourceType) bool { return r.Namespaced }).([]ApiResourceType)
+
+	return ApiResourceTypesResponse{
+		All: allApiResources,
+		Accessible: ApiResourceTypesAccessible{
+			All:        accessibleApiResources,
+			Global:     globalResources,
+			Namespaced: namespacedResources,
+		},
+	}
 }
 
 func runCommand(args ...string) string {
