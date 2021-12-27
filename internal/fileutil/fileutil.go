@@ -26,6 +26,21 @@ func PanicIfExists(path string, existsMsg string, notDeterminableMsg string) {
 	}
 }
 
+func Exists(path string, notDeterminableMsg string) bool {
+
+	existingFolder, err := os.Stat(path)
+
+	if existingFolder != nil {
+		return true
+	}
+
+	if err != nil && !os.IsNotExist(err) {
+		panic(notDeterminableMsg)
+	}
+
+	return false
+}
+
 func CreateFolderOrPanic(path string, notPossibleMsg string) {
 
 	err := os.MkdirAll(path, 0755)
@@ -42,7 +57,7 @@ func String2FileOrPanic(path string, data string) {
 	}
 }
 
-func ReplaceInvalidChars(filename string) string {
+func SanitizePath(filename string) string {
 
 	// Make a Regex to say we only want letters and numbers
 	reg, err := regexp.Compile("[^a-zA-Z0-9\\-_.]+")

@@ -83,18 +83,23 @@ func ParseK8sYamlOrPanic(in string) []*K8sResource {
 }
 
 type K8sResource struct {
-	Kind       string              `yaml:"kind"`
-	ApiVersion string              `yaml:"apiVersion"`
-	MetaData   K8sResourceMetadata `yaml:"metadata"`
-	SourceYaml string
+	Kind              string              `yaml:"kind"`
+	ApiVersion        string              `yaml:"apiVersion"`
+	MetaData          K8sResourceMetadata `yaml:"metadata"`
+	SourceYaml        string
+	QualifiedTypeName string
 }
 
-func (r *K8sResource) isNamespaced() bool {
+func (r *K8sResource) IsNamespaced() bool {
 	return len(r.MetaData.Namespace) > 0
 }
 
-func (r *K8sResource) isGlobal() bool {
-	return !r.isNamespaced()
+func (r *K8sResource) IsGlobal() bool {
+	return !r.IsNamespaced()
+}
+
+func (r *K8sResource) IsSecret() bool {
+	return strings.ToLower(r.Kind) == "secret"
 }
 
 type K8sResourceMetadata struct {
@@ -124,6 +129,15 @@ func parseSingleK8sYaml(item interface{}) *K8sResource {
 	}
 
 	out.SourceYaml = string(yamlString)
+
+	parts := strings.Split(out.ApiVersion, "/")
+	if len(parts) == 1 {
+		out.QualifiedTypeName = strings.ToLower(out.Kind)
+	} else if len(parts) == 2 {
+		out.QualifiedTypeName = strings.ToLower(out.Kind) + "." + parts[0]
+	} else {
+		panic("Unable to parse QualifiedTypeName from string: " + out.ApiVersion)
+	}
 
 	return &out
 }
