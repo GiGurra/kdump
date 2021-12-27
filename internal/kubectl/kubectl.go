@@ -222,6 +222,7 @@ func ApiResourceTypesOrPanic() ApiResourceTypesResponse {
 }
 
 func runCommandOrPanic(args ...string) string {
+
 	if !shell.CommandExists("kubectl") {
 		panic("kubectl not on path!")
 	}
