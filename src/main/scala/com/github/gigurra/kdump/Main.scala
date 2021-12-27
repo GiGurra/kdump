@@ -4,6 +4,7 @@ import com.github.gigurra.kdump.config.AppConfig
 import internal.util
 import internal.util.kubectl
 import internal.util.async
+import internal.util.k8sYaml
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,46 +43,21 @@ def dumpNamespacedResources(outputDir: String,
                             namespace: String,
                             namespacedResourceTypeNames: List[String]): Unit =
 
-
   println(s"processing namespace $namespace")
 
-  util.file.mkDirs(s"$outputDir/$namespace")
-  val allYaml = kubectl.downloadAllResources(namespace, namespacedResourceTypeNames.filter(_ != "secrets"), "yaml")
-  val outFilePath = s"$outputDir/$namespace/all.yaml"
-  println(s"Storing $outFilePath")
-  util.file.string2File(outFilePath, allYaml)
-/*
+  val namespaceDir = s"$outputDir/$namespace"
 
-  for resourceTypeName <- namespacedResourceTypeNames do
-    dumpNamespacedResources(outputDir, namespace, resourceTypeName)
-*/
+  util.file.mkDirs(namespaceDir)
 
+  val allYaml = kubectl.downloadAllResources(namespace, namespacedResourceTypeNames, "yaml")
+  val parsedYaml: Seq[k8sYaml.K8sResource] = k8sYaml.parseList(allYaml)
+  val resourcesByType: Map[String, Seq[k8sYaml.K8sResource]] = parsedYaml.groupBy(_.qualifiedKind)
 
-def dumpNamespacedResources(outputDir: String,
-                            namespace: String,
-                            resourceTypeName: String): Unit =
-  println(s"processing $namespace/$resourceTypeName")
-  val resourceNames = kubectl.listNamespacedResourcesOfType(namespace, resourceTypeName)
-  if resourceNames.nonEmpty then
-    if resourceTypeName == "secrets" then
-      dumpSecrets(outputDir, namespace, resourceTypeName, resourceNames)
-    else
-      dumpRegularNamespacedResources(outputDir, namespace, resourceTypeName, resourceNames)
-
-def dumpRegularNamespacedResources(outputDir: String,
-                                   namespace: String,
-                                   resourceTypeName: String,
-                                   resourceNames: List[String]): Unit =
-  val itemDir = s"$outputDir/$namespace/$resourceTypeName"
-  util.file.mkDirs(itemDir)
-  for item <- resourceNames do
-    val yamlSpec = kubectl.downloadNamespacedResource(namespace, resourceTypeName, item, "yaml")
-    val outFilePath = itemDir + "/" + util.file.sanitizeFileName(item) + ".yaml"
-    println(s"Storing $outFilePath")
-    util.file.string2File(outFilePath, yamlSpec)
-
-def dumpSecrets(outputDir: String,
-                namespace: String,
-                resourceTypeName: String,
-                resourceNames: List[String]): Unit =
-  println("ignoring storage of secrets. Not yet implemented")
+  for (kind, resources) <- resourcesByType do
+    val resourceDir = s"$namespaceDir/${util.file.sanitizeFileName(kind)}"
+    util.file.mkDirs(resourceDir)
+    for resource <- resources do
+      if resource.isSecret then
+        println(s"ignoring secret, not yet implemented: $resource")
+      else
+        util.file.string2File(s"$resourceDir/${util.file.sanitizeFileName(resource.name)}.yaml", resource.source)

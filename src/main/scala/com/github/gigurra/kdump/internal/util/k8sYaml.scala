@@ -3,6 +3,7 @@ package com.github.gigurra.kdump.internal.util
 import io.circe.*
 
 import scala.annotation.tailrec
+import scala.util.Try
 
 object k8sYaml {
 
@@ -11,7 +12,19 @@ object k8sYaml {
                          name: String,
                          namespace: Option[String],
                          source: String) {
-    override def toString: String = s"K8sResource(apiVersion=$apiVersion, kind=$kind, name=$name, namespace=$namespace)"
+
+    lazy val isSecret: Boolean =
+      Set("secret", "secrets").contains(kind.toLowerCase)
+    
+    lazy val typeSuffix: String =
+      apiVersion.indexOf("/") match
+        case -1 => ""
+        case index => s".${apiVersion.take(index)}"
+
+    lazy val qualifiedKind: String = s"$kind$typeSuffix".toLowerCase
+    lazy val qualifiedName: String = s"$name.$qualifiedKind"
+
+    override def toString: String = s"K8sResource(qualifiedKind=$qualifiedKind, name=$name, namespace=$namespace)"
   }
 
   def parseList(yamlString: String): Seq[K8sResource] =
@@ -31,8 +44,8 @@ object k8sYaml {
       K8sResource(
         apiVersion = extractString(obj, "apiVersion"),
         kind = extractString(obj, "kind"),
-        name = ???,
-        namespace = ???,
+        name = extractString(obj, "metadata", "name"),
+        namespace = Try(extractString(obj, "metadata", "namespace")).toOption,
         source = yaml.printer.print(Json.fromJsonObject(obj)),
       )
     }
