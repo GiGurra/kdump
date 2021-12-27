@@ -21,7 +21,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	outputDirRoot := appConfig.OutputDir
 	namespaces := kubectl.NamespacesOrPanic()
 	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
-	resourcesToDownload := appConfig.FilterIncludeResources(apiResourceTypes.Accessible.All)
+	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 	everything := kubectl.DownloadEverythingOrPanic(resourcesToDownload)
 
 	log.Printf("Parsing %d bytes...\n", len(everything))

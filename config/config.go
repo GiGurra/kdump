@@ -85,7 +85,7 @@ func (config *AppConfig) IsResourceIncluded(resourceType *kubectl.ApiResourceTyp
 		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets)
 }
 
-func (config *AppConfig) FilterIncludeResources(resourceTypes []*kubectl.ApiResourceType) []*kubectl.ApiResourceType {
+func (config *AppConfig) FilterIncludedResources(resourceTypes []*kubectl.ApiResourceType) []*kubectl.ApiResourceType {
 	return funk.Filter(resourceTypes, func(r *kubectl.ApiResourceType) bool {
 		return config.IsResourceIncluded(r)
 	}).([]*kubectl.ApiResourceType)
