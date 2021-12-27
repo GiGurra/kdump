@@ -23,10 +23,10 @@ def dumpCurrentContext(appConfig: AppConfig): Unit =
   println(s"Downloading all resources from current context '$currentK8sContext' to dir '$outputDir'")
 
   // Do all of these in parallel
-  val namespaces = async.run(kubectl.namespaces())
-  val allResourceTypeNames = async.run(kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded))
-  val globalResourceTypeNames = async.run(kubectl.globalResourceTypeNames().filter(appConfig.isResourceIncluded))
-  val namespacedResourceTypeNames = async.run(kubectl.namespacedResourceTypeNames().filter(appConfig.isResourceIncluded))
+  val namespaces = async(kubectl.namespaces())
+  val allResourceTypeNames = async(kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded))
+  val globalResourceTypeNames = async(kubectl.globalResourceTypeNames().filter(appConfig.isResourceIncluded))
+  val namespacedResourceTypeNames = async(kubectl.namespacedResourceTypeNames().filter(appConfig.isResourceIncluded))
 
   for namespace <- namespaces do
     dumpNamespacedResources(outputDir, namespace, namespacedResourceTypeNames)

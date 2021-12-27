@@ -5,7 +5,7 @@ import scala.concurrent.{Await, ExecutionContext, Future, blocking}
 
 object async {
 
-  def run[T](expr: => T)(using ec: ExecutionContext = ExecutionContext.global): asyncOp[T] =
+  def apply[T](expr: => T)(using ec: ExecutionContext = ExecutionContext.global): asyncOp[T] =
     asyncOp(Future(blocking(expr))(ec))
 
   def await[T](f: asyncOp[T])(using ec: ExecutionContext = ExecutionContext.global): T =
