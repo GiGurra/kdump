@@ -6,6 +6,7 @@ import (
 	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
 	"log"
+	"syscall"
 )
 
 func main() {
@@ -27,6 +28,11 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	namespaces := kubectl.NamespacesOrPanic()
 	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
+
+	everything := kubectl.DownloadEverythingOrPanic(apiResourceTypes.Accessible.All)
+	fileutil.String2FileOrPanic(outputDir+"/everything.yaml", everything)
+
+	syscall.Exit(1)
 
 	for _, namespace := range namespaces {
 

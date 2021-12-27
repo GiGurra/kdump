@@ -38,6 +38,32 @@ func DownloadGlobalResourceOrPanic(resourceType string, resourceName string, for
 	return rawString
 }
 
+func DownloadEverythingOrPanic(types []*ApiResourceType) string {
+
+	qualifiedTypenames := funk.Map(types, func(in *ApiResourceType) string {
+		return in.QualifiedName
+	}).([]string)
+
+	return runCommandOrPanic("get", strings.Join(qualifiedTypenames, ","), "--all-namespaces", "-o", "yaml")
+}
+
+func DownloadEverythingInNamespaceOrPanic(types []*ApiResourceType, namespace string) string {
+
+	qualifiedTypenames := funk.Map(types, func(in *ApiResourceType) string {
+		return in.QualifiedName
+	}).([]string)
+
+	return runCommandOrPanic("get", strings.Join(qualifiedTypenames, ","), "-n", namespace, "-o", "yaml")
+}
+
+func DownloadEverythingOfTypeOrPanic(tpe *ApiResourceType) string {
+	return runCommandOrPanic("get", tpe.QualifiedName, "-o", "yaml")
+}
+
+func DownloadEverythingOfTypeInNamespaceOrPanic(tpe *ApiResourceType, namespace string) string {
+	return runCommandOrPanic("get", "-n", namespace, tpe.QualifiedName, "-o", "yaml")
+}
+
 type ApiVersion struct {
 	Version string
 	Name    string
