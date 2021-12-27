@@ -29,8 +29,9 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	namespaces := kubectl.NamespacesOrPanic()
 	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
 
-	everything := kubectl.DownloadEverythingOrPanic(apiResourceTypes.Accessible.All)
-	fileutil.String2FileOrPanic(outputDir+"/everything.yaml", everything)
+	everything := kubectl.DownloadEverythingInNamespaceOrPanic(apiResourceTypes.Accessible.Namespaced[0:1], "default")
+	kubectl.ParseK8sYamlOrPanic(everything)
+	fileutil.String2FileOrPanic(outputDir+"/default.yaml", everything)
 
 	syscall.Exit(1)
 

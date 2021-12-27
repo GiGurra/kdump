@@ -2,6 +2,7 @@ package kubectl
 
 import (
 	"github.com/thoas/go-funk"
+	"gopkg.in/yaml.v2"
 	"kdump/internal/shell"
 	"kdump/internal/stringutil"
 	"os/exec"
@@ -62,6 +63,19 @@ func DownloadEverythingOfTypeOrPanic(tpe *ApiResourceType) string {
 
 func DownloadEverythingOfTypeInNamespaceOrPanic(tpe *ApiResourceType, namespace string) string {
 	return runCommandOrPanic("get", "-n", namespace, tpe.QualifiedName, "-o", "yaml")
+}
+
+func ParseK8sYamlOrPanic(in string) map[string]interface{} {
+
+	m := make(map[string]interface{})
+
+	err := yaml.Unmarshal([]byte(in), &m)
+
+	if err != nil {
+		panic("Could not parse input yaml due to " + err.Error())
+	}
+
+	return m
 }
 
 type ApiVersion struct {
