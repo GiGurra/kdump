@@ -16,7 +16,7 @@ func main() {
 
 func dumpCurrentContext(appConfig config.AppConfig) {
 
-	currentK8sContext := kubectl.CurrentContext()
+	currentK8sContext := kubectl.CurrentContextOrPanic()
 	outputDir := appConfig.GetOutDir(currentK8sContext)
 
 	fileutil.PanicIfCantDelete(outputDir, fmt.Sprintf("removal of outputdir '%s' failed", outputDir))
@@ -25,32 +25,32 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Downloading all resources from current context to dir %s ...\n", outputDir)
 
-	namespaces := kubectl.Namespaces()
-	apiResourceTypes := kubectl.ApiResourceTypes()
+	namespaces := kubectl.NamespacesOrPanic()
+	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
 
 	for _, namespace := range namespaces {
 
 		fileutil.CreateFolderOrPanic(outputDir+"/"+namespace, "could not create output dir for namespace "+namespace)
 
 		for _, namespaceResourceType := range apiResourceTypes.Accessible.Namespaced {
-			if appConfig.IncludeResource(namespaceResourceType.Name) {
-				dumpNamespacedResources(outputDir, namespace, namespaceResourceType.Name)
+			if appConfig.IncludeResource(namespaceResourceType) {
+				dumpNamespacedResourcesOrPanic(outputDir, namespace, namespaceResourceType.QualifiedName)
 			}
 		}
 	}
 }
 
-func dumpNamespacedResources(
+func dumpNamespacedResourcesOrPanic(
 	outputDir string,
 	namespace string,
 	resourceTypeName string,
 ) {
-	resourceNames := kubectl.ListNamespacedResourcesOfType(namespace, resourceTypeName)
+	resourceNames := kubectl.ListNamespacedResourcesOfTypeOrPanic(namespace, resourceTypeName)
 	if len(resourceNames) > 0 {
 		if resourceTypeName == "secrets" {
-			dumpSecrets(outputDir, namespace, resourceTypeName, resourceNames)
+			dumpSecretsOrPanic(outputDir, namespace, resourceTypeName, resourceNames)
 		} else {
-			dumpRegularNamespacedResources(outputDir, namespace, resourceTypeName, resourceNames)
+			dumpRegularNamespacedResourcesOrPanic(outputDir, namespace, resourceTypeName, resourceNames)
 		}
 	}
 }
@@ -63,13 +63,13 @@ func dumpRegularGlobalResources(
 	itemDir := outputDir + "/" + resourceTypeName
 	fileutil.CreateFolderOrPanic(itemDir, "could not create output dir for global resource "+resourceTypeName)
 	for _, item := range resourceNames {
-		resource := kubectl.DownloadGlobalResource(resourceTypeName, item, "yaml")
+		resource := kubectl.DownloadGlobalResourceOrPanic(resourceTypeName, item, "yaml")
 		log.Printf("Storing item %v in folder %v", item, itemDir)
-		fileutil.String2File(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
+		fileutil.String2FileOrPanic(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
 	}
 }
 
-func dumpRegularNamespacedResources(
+func dumpRegularNamespacedResourcesOrPanic(
 	outputDir string,
 	namespace string,
 	resourceTypeName string,
@@ -78,13 +78,13 @@ func dumpRegularNamespacedResources(
 	itemDir := outputDir + "/" + namespace + "/" + resourceTypeName
 	fileutil.CreateFolderOrPanic(itemDir, "could not create output dir for namespace resource "+resourceTypeName)
 	for _, item := range resourceNames {
-		resource := kubectl.DownloadNamespacedResource(namespace, resourceTypeName, item, "yaml")
+		resource := kubectl.DownloadNamespacedResourceOrPanic(namespace, resourceTypeName, item, "yaml")
 		log.Printf("Storing item %v in folder %v", item, itemDir)
-		fileutil.String2File(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
+		fileutil.String2FileOrPanic(itemDir+"/"+fileutil.ReplaceInvalidChars(item)+".yaml", resource)
 	}
 }
 
-func dumpSecrets(
+func dumpSecretsOrPanic(
 	outputDir string,
 	namespace string,
 	resourceTypeName string,

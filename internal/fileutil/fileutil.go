@@ -34,7 +34,7 @@ func CreateFolderOrPanic(path string, notPossibleMsg string) {
 	}
 }
 
-func String2File(path string, data string) {
+func String2FileOrPanic(path string, data string) {
 	bytes := []byte(data)
 	err := os.WriteFile(path, bytes, 0644)
 	if err != nil {

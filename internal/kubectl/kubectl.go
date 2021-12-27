@@ -8,73 +8,96 @@ import (
 	"strings"
 )
 
-func Namespaces() []string {
-	return stringutil.MapStrArray(stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
+func NamespacesOrPanic() []string {
+	return stringutil.MapStrArray(stringutil.SplitLines(runCommandOrPanic("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
 }
 
-func CurrentNamespace() string {
-	return runCommand("config", "view", "--minify", "--output", "jsonpath={..namespace}")
+func CurrentNamespaceOrPanic() string {
+	return runCommandOrPanic("config", "view", "--minify", "--output", "jsonpath={..namespace}")
 }
 
-func CurrentContext() string {
-	return runCommand("config", "current-context")
+func CurrentContextOrPanic() string {
+	return runCommandOrPanic("config", "current-context")
 }
 
-func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
-	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
+func ListNamespacedResourcesOfTypeOrPanic(namespace string, resourceType string) []string {
+	rawString := runCommandOrPanic("-n", namespace, "get", resourceType, "-o", "name")
 	itemsWithPrefixes := stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
 	return funk.Map(itemsWithPrefixes, func(in string) string {
 		return stringutil.RemoveUpToAndIncluding(in, "/")
 	}).([]string)
 }
 
-func DownloadNamespacedResource(namespace string, resourceType string, resourceName string, format string) string {
-	rawString := runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format)
+func DownloadNamespacedResourceOrPanic(namespace string, resourceType string, resourceName string, format string) string {
+	rawString := runCommandOrPanic("-n", namespace, "get", resourceType, resourceName, "-o", format)
 	return rawString
 }
 
-func DownloadGlobalResource(resourceType string, resourceName string, format string) string {
-	rawString := runCommand("get", resourceType, resourceName, "-o", format)
+func DownloadGlobalResourceOrPanic(resourceType string, resourceName string, format string) string {
+	rawString := runCommandOrPanic("get", resourceType, resourceName, "-o", format)
 	return rawString
 }
 
+type ApiVersion struct {
+	Version string
+	Name    string
+}
 type ApiResourceType struct {
-	Name       string
-	ShortNames []string
-	Namespaced bool
-	Kind       string
-	Verbs      []string
+	Name          string
+	ShortNames    []string
+	Namespaced    bool
+	Kind          string
+	Verbs         []string
+	ApiVersion    ApiVersion
+	QualifiedName string
 }
 
 type ApiResourceTypesResponse struct {
-	All        []ApiResourceType
+	All        []*ApiResourceType
 	Accessible ApiResourceTypesAccessible
 }
 
 type ApiResourceTypesAccessible struct {
-	All        []ApiResourceType
-	Global     []ApiResourceType
-	Namespaced []ApiResourceType
+	All        []*ApiResourceType
+	Global     []*ApiResourceType
+	Namespaced []*ApiResourceType
 }
 
-func ApiResourceTypes() ApiResourceTypesResponse {
-	rawString := runCommand("api-resources", "-o", "wide")
+func ApiResourceTypesOrPanic() ApiResourceTypesResponse {
+
+	rawString := runCommandOrPanic("api-resources", "-o", "wide")
 
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
 
-	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) ApiResourceType {
-		return ApiResourceType{
+	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) *ApiResourceType {
+
+		out := &ApiResourceType{
 			Name:       stringutil.MapStrValOrElse(in, "NAME", ""),
 			ShortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
 			Namespaced: stringutil.Str2boolOrElse(stringutil.MapStrValOrElse(in, "NAMESPACED", ""), false),
 			Kind:       stringutil.MapStrValOrElse(in, "KIND", ""),
 			Verbs:      stringutil.WierdKubectlArray2arr(stringutil.MapStrValOrElse(in, "VERBS", "")),
 		}
-	}).([]ApiResourceType)
 
-	accessibleApiResources := funk.Filter(allApiResources, func(r ApiResourceType) bool { return funk.ContainsString(r.Verbs, "get") }).([]ApiResourceType)
-	globalResources := funk.Filter(accessibleApiResources, func(r ApiResourceType) bool { return !r.Namespaced }).([]ApiResourceType)
-	namespacedResources := funk.Filter(accessibleApiResources, func(r ApiResourceType) bool { return r.Namespaced }).([]ApiResourceType)
+		apiVersionString := stringutil.MapStrValOrElse(in, "APIVERSION", "")
+		parts := strings.Split(apiVersionString, "/")
+		if len(parts) == 1 {
+			out.ApiVersion = ApiVersion{parts[0], ""}
+			out.QualifiedName = out.Name
+		} else if len(parts) == 2 {
+			out.ApiVersion = ApiVersion{parts[1], parts[0]}
+			out.QualifiedName = out.Name + "." + out.ApiVersion.Name
+		} else {
+			panic("Unable to parse ApiVersion from string: " + apiVersionString)
+		}
+
+		return out
+
+	}).([]*ApiResourceType)
+
+	accessibleApiResources := funk.Filter(allApiResources, func(r *ApiResourceType) bool { return funk.ContainsString(r.Verbs, "get") }).([]*ApiResourceType)
+	globalResources := funk.Filter(accessibleApiResources, func(r *ApiResourceType) bool { return !r.Namespaced }).([]*ApiResourceType)
+	namespacedResources := funk.Filter(accessibleApiResources, func(r *ApiResourceType) bool { return r.Namespaced }).([]*ApiResourceType)
 
 	return ApiResourceTypesResponse{
 		All: allApiResources,
@@ -86,7 +109,7 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 	}
 }
 
-func runCommand(args ...string) string {
+func runCommandOrPanic(args ...string) string {
 	if !shell.CommandExists("kubectl") {
 		panic("kubectl not on path!")
 	}
