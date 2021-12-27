@@ -1,8 +1,8 @@
 package config
 
 import (
+	"github.com/gigurra/kdump/internal/kubectl"
 	"github.com/thoas/go-funk"
-	"kdump/internal/kubectl"
 	"strings"
 )
 

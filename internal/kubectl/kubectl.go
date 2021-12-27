@@ -1,10 +1,10 @@
 package kubectl
 
 import (
+	"github.com/gigurra/kdump/internal/shell"
+	"github.com/gigurra/kdump/internal/stringutil"
 	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v2"
-	"kdump/internal/shell"
-	"kdump/internal/stringutil"
 	"os/exec"
 	"strings"
 )

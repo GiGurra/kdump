@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/gigurra/kdump/config"
+	"github.com/gigurra/kdump/internal/fileutil"
+	"github.com/gigurra/kdump/internal/kubectl"
 	"github.com/thoas/go-funk"
-	"kdump/config"
-	"kdump/internal/fileutil"
-	"kdump/internal/kubectl"
 	"log"
 )
 
