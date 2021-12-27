@@ -65,17 +65,61 @@ func DownloadEverythingOfTypeInNamespaceOrPanic(tpe *ApiResourceType, namespace 
 	return runCommandOrPanic("get", "-n", namespace, tpe.QualifiedName, "-o", "yaml")
 }
 
-func ParseK8sYamlOrPanic(in string) map[string]interface{} {
+func ParseK8sYamlOrPanic(in string) []*K8sResource {
 
-	m := make(map[string]interface{})
+	root := make(map[string]interface{})
 
-	err := yaml.Unmarshal([]byte(in), &m)
+	err := yaml.Unmarshal([]byte(in), &root)
 
 	if err != nil {
 		panic("Could not parse input yaml due to " + err.Error())
 	}
 
-	return m
+	if hasKey(root, "items") {
+		return parseMultiK8sYaml(root)
+	} else {
+		return []*K8sResource{parseSingleK8sYaml(root)}
+	}
+}
+
+type K8sResource struct {
+	Kind       string              `yaml:"kind"`
+	ApiVersion string              `yaml:"apiVersion"`
+	MetaData   K8sResourceMetadata `yaml:"metadata"`
+	SourceYaml string
+}
+
+type K8sResourceMetadata struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace"`
+}
+
+func parseMultiK8sYaml(in map[string]interface{}) []*K8sResource {
+	items := in["items"].([]interface{})
+	return funk.Map(items, parseSingleK8sYaml).([]*K8sResource)
+}
+
+func parseSingleK8sYaml(item interface{}) *K8sResource {
+	yamlString, marshallError := yaml.Marshal(item)
+	if marshallError != nil {
+		panic("Failed marshalling object to yaml, due to: " + marshallError.Error())
+	}
+	var out K8sResource
+	if yaml.Unmarshal(yamlString, &out) != nil {
+		panic("Failed reading back yaml: " + string(yamlString))
+	}
+
+	out.SourceYaml = string(yamlString)
+
+	return &out
+}
+
+func hasKey(dict map[string]interface{}, key string) bool {
+	if _, ok := dict[key]; ok {
+		return true
+	} else {
+		return false
+	}
 }
 
 type ApiVersion struct {
