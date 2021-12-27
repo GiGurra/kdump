@@ -42,10 +42,19 @@ def dumpNamespacedResources(outputDir: String,
                             namespace: String,
                             namespacedResourceTypeNames: List[String]): Unit =
 
+
   println(s"processing namespace $namespace")
+
   util.file.mkDirs(s"$outputDir/$namespace")
+  val allYaml = kubectl.downloadAllResources(namespace, namespacedResourceTypeNames.filter(_ != "secrets"), "yaml")
+  val outFilePath = s"$outputDir/$namespace/all.yaml"
+  println(s"Storing $outFilePath")
+  util.file.string2File(outFilePath, allYaml)
+/*
+
   for resourceTypeName <- namespacedResourceTypeNames do
     dumpNamespacedResources(outputDir, namespace, resourceTypeName)
+*/
 
 
 def dumpNamespacedResources(outputDir: String,

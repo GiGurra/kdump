@@ -48,6 +48,9 @@ object kubectl {
       .filter(_.nonEmpty)
       .map(_.removeUpToAndIncluding("/"))
 
+  def downloadAllResources(namespace: String, resourceTypes: List[String], format: String): String =
+    runCommand("-n", namespace, "get", resourceTypes.mkString(","), "-o", format).trim
+
   def downloadNamespacedResource(namespace: String, resourceType: String, resourceName: String, format: String): String =
     runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format).trim
 
