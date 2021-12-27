@@ -6,14 +6,15 @@ import (
 	"strings"
 )
 
+type Encryption interface {
+	Encrypt(data string) []byte
+}
+
 type AppConfig struct {
-	OutputDir                string
-	AppendContextToOutputDir bool
-	ExcludedResourceTypes    []string
-	IncludeSecrets           bool
-	EncryptSecrets           bool
-	SecretsEncryptAlgo       string
-	SecretsEncryptKey        string
+	OutputDir             string
+	ExcludedResourceTypes []string
+	IncludeSecrets        bool
+	SecretsEncryption     Encryption
 }
 
 func getDefaultExcludedResourceTypes() []string {
@@ -69,13 +70,10 @@ func getDefaultExcludedResourceTypes() []string {
 
 func GetDefaultAppConfig() AppConfig {
 	return AppConfig{
-		OutputDir:                "test",
-		AppendContextToOutputDir: true,
-		ExcludedResourceTypes:    getDefaultExcludedResourceTypes(),
-		IncludeSecrets:           false,
-		EncryptSecrets:           true,
-		SecretsEncryptAlgo:       "",
-		SecretsEncryptKey:        "",
+		OutputDir:             "test",
+		ExcludedResourceTypes: getDefaultExcludedResourceTypes(),
+		IncludeSecrets:        false,
+		SecretsEncryption:     nil,
 	}
 }
 
