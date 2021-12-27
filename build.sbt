@@ -6,3 +6,4 @@ scalaVersion := "3.1.0"
 
 libraryDependencies ++= dependencies.prod
 
+enablePlugins(PackPlugin)
