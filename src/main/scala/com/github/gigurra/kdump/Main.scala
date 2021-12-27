@@ -33,6 +33,7 @@ def dumpCurrentContext(appConfig: AppConfig): Unit =
   lazy val globalResourceTypeNames = globalResourceTypeNamesOp.join
   lazy val namespacedResourceTypeNames = namespacedResourceTypeNamesOp.join
 
+  // We could do these in parallel as well, but doing it brute force in parallel overloads kubectl and the k8s api server :P
   for namespace <- namespaces do
     dumpNamespacedResources(outputDir, namespace, namespacedResourceTypeNames)
 
