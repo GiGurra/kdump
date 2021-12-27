@@ -5,7 +5,6 @@ import (
 	"github.com/gigurra/kdump/config"
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/kubectl"
-	"github.com/thoas/go-funk"
 	"log"
 )
 
@@ -17,16 +16,12 @@ func main() {
 
 func dumpCurrentContext(appConfig config.AppConfig) {
 
-	currentK8sContext := kubectl.CurrentContextOrPanic()
-	outputDir := appConfig.GetOutDir(currentK8sContext)
+	log.Printf("Downloading all resources from current context")
 
-	log.Printf("Downloading all resources from context '%s' ...\n", currentK8sContext)
-
+	outputDir := appConfig.OutputDir
 	namespaces := kubectl.NamespacesOrPanic()
 	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
-	resourcesToDownload := funk.Filter(apiResourceTypes.Accessible.All, func(r *kubectl.ApiResourceType) bool {
-		return appConfig.IncludeResource(r)
-	}).([]*kubectl.ApiResourceType)
+	resourcesToDownload := appConfig.FilterIncludeResources(apiResourceTypes.Accessible.All)
 	everything := kubectl.DownloadEverythingOrPanic(resourcesToDownload)
 
 	log.Printf("Parsing %d bytes...\n", len(everything))

@@ -7,7 +7,7 @@ import (
 )
 
 type AppConfig struct {
-	OutputDirBase            string
+	OutputDir                string
 	AppendContextToOutputDir bool
 	ExcludedResourceTypes    []string
 	IncludeSecrets           bool
@@ -69,7 +69,7 @@ func getDefaultExcludedResourceTypes() []string {
 
 func GetDefaultAppConfig() AppConfig {
 	return AppConfig{
-		OutputDirBase:            "test",
+		OutputDir:                "test",
 		AppendContextToOutputDir: true,
 		ExcludedResourceTypes:    getDefaultExcludedResourceTypes(),
 		IncludeSecrets:           false,
@@ -79,16 +79,14 @@ func GetDefaultAppConfig() AppConfig {
 	}
 }
 
-func (config *AppConfig) GetOutDir(currentContext string) string {
-	if config.AppendContextToOutputDir {
-		return config.OutputDirBase + "/" + currentContext
-	} else {
-		return config.OutputDirBase
-	}
-}
-
-func (config *AppConfig) IncludeResource(resourceType *kubectl.ApiResourceType) bool {
+func (config *AppConfig) IsResourceIncluded(resourceType *kubectl.ApiResourceType) bool {
 	return !funk.ContainsString(config.ExcludedResourceTypes, resourceType.Name) &&
 		!funk.ContainsString(config.ExcludedResourceTypes, resourceType.QualifiedName) &&
 		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets)
+}
+
+func (config *AppConfig) FilterIncludeResources(resourceTypes []*kubectl.ApiResourceType) []*kubectl.ApiResourceType {
+	return funk.Filter(resourceTypes, func(r *kubectl.ApiResourceType) bool {
+		return config.IsResourceIncluded(r)
+	}).([]*kubectl.ApiResourceType)
 }
