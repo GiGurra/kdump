@@ -80,7 +80,7 @@ func GetDefaultAppConfig() AppConfig {
 		OutputDir:             "test",
 		ExcludedResourceTypes: getDefaultExcludedResourceTypes(),
 		IncludeSecrets:        false,
-		SecretsEncryption:     new(NoEncryption),
+		SecretsEncryption:     &NoEncryption{},
 	}
 }
 
