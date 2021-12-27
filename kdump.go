@@ -28,12 +28,18 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 		return appConfig.IncludeResource(r)
 	}).([]*kubectl.ApiResourceType)
 	everything := kubectl.DownloadEverythingOrPanic(resourcesToDownload)
+
+	log.Printf("Parsing %d bytes...\n", len(everything))
+
 	parsed := kubectl.ParseK8sYamlOrPanic(everything)
+
+	log.Printf("Deleting old folders...\n")
 
 	fileutil.PanicIfCantDelete(outputDir, fmt.Sprintf("removal of outputdir '%s' failed", outputDir))
 	fileutil.PanicIfExists(outputDir, fmt.Sprintf("output folder '%s' already exists!", outputDir), fmt.Sprintf("output folder '%s' inaccessible!", outputDir))
 	fileutil.CreateFolderOrPanic(outputDir, fmt.Sprintf("could not create folder '%s'", outputDir))
 
+	log.Printf("Storing resources...\n")
 	for _, ns := range namespaces {
 		nsOutputDir := outputDir + "/" + ns
 		fileutil.CreateFolderOrPanic(nsOutputDir, "could not create folder: "+nsOutputDir)
