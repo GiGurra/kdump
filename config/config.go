@@ -10,6 +10,13 @@ type Encryption interface {
 	Encrypt(data string) []byte
 }
 
+type NoEncryption struct {
+}
+
+func (n NoEncryption) Encrypt(data string) []byte {
+	return []byte(data)
+}
+
 type AppConfig struct {
 	OutputDir             string
 	ExcludedResourceTypes []string
@@ -73,7 +80,7 @@ func GetDefaultAppConfig() AppConfig {
 		OutputDir:             "test",
 		ExcludedResourceTypes: getDefaultExcludedResourceTypes(),
 		IncludeSecrets:        false,
-		SecretsEncryption:     nil,
+		SecretsEncryption:     new(NoEncryption),
 	}
 }
 
