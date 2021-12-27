@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/thoas/go-funk"
 	"kdump/config"
 	"kdump/internal/fileutil"
 	"kdump/internal/kubectl"
@@ -28,10 +29,13 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	namespaces := kubectl.NamespacesOrPanic()
 	apiResourceTypes := kubectl.ApiResourceTypesOrPanic()
+	resourcesToDownload := funk.Filter(apiResourceTypes.Accessible.All, func(r *kubectl.ApiResourceType) bool {
+		return appConfig.IncludeResource(r)
+	}).([]*kubectl.ApiResourceType)
 
-	everything := kubectl.DownloadEverythingInNamespaceOrPanic(apiResourceTypes.Accessible.Namespaced[0:1], "default")
-	kubectl.ParseK8sYamlOrPanic(everything)
-	fileutil.String2FileOrPanic(outputDir+"/default.yaml", everything)
+	everything := kubectl.DownloadEverythingOrPanic(resourcesToDownload)
+	parsed := kubectl.ParseK8sYamlOrPanic(everything)
+	fileutil.String2FileOrPanic(outputDir+"/default.yaml", parsed[0].SourceYaml)
 
 	syscall.Exit(1)
 

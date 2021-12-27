@@ -89,6 +89,14 @@ type K8sResource struct {
 	SourceYaml string
 }
 
+func (r *K8sResource) isNamespaced() bool {
+	return len(r.MetaData.Namespace) > 0
+}
+
+func (r *K8sResource) isGlobal() bool {
+	return !r.isNamespaced()
+}
+
 type K8sResourceMetadata struct {
 	Name      string `yaml:"name"`
 	Namespace string `yaml:"namespace"`
@@ -100,7 +108,13 @@ func parseMultiK8sYaml(in map[string]interface{}) []*K8sResource {
 }
 
 func parseSingleK8sYaml(item interface{}) *K8sResource {
-	yamlString, marshallError := yaml.Marshal(item)
+
+	m := item.(map[interface{}]interface{})
+
+	delete(m, "lastRefresh")
+	delete(m, "status")
+
+	yamlString, marshallError := yaml.Marshal(m)
 	if marshallError != nil {
 		panic("Failed marshalling object to yaml, due to: " + marshallError.Error())
 	}
