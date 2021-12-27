@@ -7,7 +7,7 @@ import (
 )
 
 type AppConfig struct {
-	OutputDir                string
+	OutputDirBase            string
 	AppendContextToOutputDir bool
 	ExcludedResourceTypes    []string
 	IncludeSecrets           bool
@@ -69,7 +69,7 @@ func getDefaultExcludedResourceTypes() []string {
 
 func GetDefaultAppConfig() AppConfig {
 	return AppConfig{
-		OutputDir:                "test",
+		OutputDirBase:            "test",
 		AppendContextToOutputDir: true,
 		ExcludedResourceTypes:    getDefaultExcludedResourceTypes(),
 		IncludeSecrets:           false,
@@ -81,9 +81,9 @@ func GetDefaultAppConfig() AppConfig {
 
 func (config *AppConfig) GetOutDir(currentContext string) string {
 	if config.AppendContextToOutputDir {
-		return config.OutputDir + "/" + currentContext
+		return config.OutputDirBase + "/" + currentContext
 	} else {
-		return config.OutputDir
+		return config.OutputDirBase
 	}
 }
 
