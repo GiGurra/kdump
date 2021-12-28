@@ -8,17 +8,6 @@ import (
 	"strings"
 )
 
-type Encryption interface {
-	Encrypt(data string) []byte
-}
-
-type NoEncryption struct {
-}
-
-func (n NoEncryption) Encrypt(data string) []byte {
-	return []byte(data)
-}
-
 type AppConfig struct {
 	OutputDir             string
 	DeletePrevDir         bool
