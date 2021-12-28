@@ -41,20 +41,20 @@ func DownloadGlobalResource(resourceType string, resourceName string, format str
 
 func DownloadEverything(types []*k8s.ApiResourceType) string {
 
-	qualifiedTypenames := funk.Map(types, func(in *k8s.ApiResourceType) string {
+	qualifiedTypeNames := funk.Map(types, func(in *k8s.ApiResourceType) string {
 		return in.QualifiedName
 	}).([]string)
 
-	return runCommand("get", strings.Join(qualifiedTypenames, ","), "--all-namespaces", "-o", "yaml")
+	return runCommand("get", strings.Join(qualifiedTypeNames, ","), "--all-namespaces", "-o", "yaml")
 }
 
 func DownloadEverythingInNamespace(types []*k8s.ApiResourceType, namespace string) string {
 
-	qualifiedTypenames := funk.Map(types, func(in *k8s.ApiResourceType) string {
+	qualifiedTypeNames := funk.Map(types, func(in *k8s.ApiResourceType) string {
 		return in.QualifiedName
 	}).([]string)
 
-	return runCommand("get", strings.Join(qualifiedTypenames, ","), "-n", namespace, "-o", "yaml")
+	return runCommand("get", strings.Join(qualifiedTypeNames, ","), "-n", namespace, "-o", "yaml")
 }
 
 func DownloadEverythingOfType(tpe *k8s.ApiResourceType) string {

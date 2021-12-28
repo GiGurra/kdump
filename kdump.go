@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-var version = "v1.26.0"
+var version = "v1.26.x"
 
 func main() {
 
