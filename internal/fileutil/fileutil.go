@@ -50,6 +50,14 @@ func String2File(path string, data string) {
 	Bytes2File(path, []byte(data))
 }
 
+func File2String(path string) string {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		panic("Failed reading file '" + path + "' due to " + err.Error())
+	}
+	return string(bytes)
+}
+
 func Bytes2File(path string, bytes []byte) {
 	err := os.WriteFile(path, bytes, 0644)
 	if err != nil {

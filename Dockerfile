@@ -17,6 +17,5 @@ RUN ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts #is this safe?
 
 ## install kdump
 ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
-ADD VERSION VERSION
 ADD kdump kdump
 RUN ln -s $(pwd)/kdump /usr/local/bin/kdump

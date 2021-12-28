@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-var Version = "development" // injected by build script
+var version = "2.0.1"
 
 func main() {
 
@@ -39,7 +39,7 @@ func main() {
 		},
 	}
 
-	app.Version = Version
+	app.Version = version
 
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
