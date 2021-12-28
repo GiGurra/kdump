@@ -39,9 +39,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
 		} else if resource.IsNamespaced() {
 			nsOutputDir := outputDirRoot + "/" + resource.MetaData.Namespace
-			if !fileutil.Exists(nsOutputDir, "could not determine if outputdir exists: "+nsOutputDir) {
-				fileutil.CreateFolder(nsOutputDir, "could not create outputdir: "+nsOutputDir)
-			}
+			fileutil.CreateFolderIfMissing(nsOutputDir, "could not create output dir: "+nsOutputDir)
 			fileutil.String2File(nsOutputDir+"/"+filename, resource.SourceYaml)
 		} else {
 			fileutil.String2File(outputDirRoot+"/"+filename, resource.SourceYaml)

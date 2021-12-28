@@ -36,6 +36,16 @@ func CreateFolder(path string, notPossibleMsg string) {
 	}
 }
 
+func CreateFolderIfMissing(path string, notPossibleMsg string) {
+
+	if !Exists(path, notPossibleMsg) {
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			panic(notPossibleMsg)
+		}
+	}
+}
+
 func String2File(path string, data string) {
 	bytes := []byte(data)
 	err := os.WriteFile(path, bytes, 0644)
