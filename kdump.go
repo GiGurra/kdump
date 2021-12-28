@@ -12,6 +12,8 @@ import (
 	"os"
 )
 
+var Version = "development" // injected by build script
+
 func main() {
 
 	app := cli.NewApp()
@@ -36,6 +38,8 @@ func main() {
 			Usage: "symmetric secrets encryption hex key for aes GCM (lower case 64 chars)",
 		},
 	}
+
+	app.Version = Version
 
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
