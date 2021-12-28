@@ -6,22 +6,9 @@ import (
 	"regexp"
 )
 
-func PanicIfCantDelete(path string, notDeterminableMsg string) {
+func Delete(path string, notDeterminableMsg string) {
 	err := os.RemoveAll(path)
 	if err != nil {
-		panic(notDeterminableMsg)
-	}
-}
-
-func PanicIfExists(path string, existsMsg string, notDeterminableMsg string) {
-
-	existingFolder, err := os.Stat(path)
-
-	if existingFolder != nil {
-		panic(existsMsg)
-	}
-
-	if err != nil && !os.IsNotExist(err) {
 		panic(notDeterminableMsg)
 	}
 }
@@ -41,7 +28,7 @@ func Exists(path string, notDeterminableMsg string) bool {
 	return false
 }
 
-func CreateFolderOrPanic(path string, notPossibleMsg string) {
+func CreateFolder(path string, notPossibleMsg string) {
 
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
@@ -49,7 +36,7 @@ func CreateFolderOrPanic(path string, notPossibleMsg string) {
 	}
 }
 
-func String2FileOrPanic(path string, data string) {
+func String2File(path string, data string) {
 	bytes := []byte(data)
 	err := os.WriteFile(path, bytes, 0644)
 	if err != nil {

@@ -9,63 +9,63 @@ import (
 	"strings"
 )
 
-func NamespacesOrPanic() []string {
-	return stringutil.MapStrArray(stringutil.SplitLines(runCommandOrPanic("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
+func Namespaces() []string {
+	return stringutil.MapStrArray(stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
 }
 
-func CurrentNamespaceOrPanic() string {
-	return runCommandOrPanic("config", "view", "--minify", "--output", "jsonpath={..namespace}")
+func CurrentNamespace() string {
+	return runCommand("config", "view", "--minify", "--output", "jsonpath={..namespace}")
 }
 
-func CurrentContextOrPanic() string {
-	return runCommandOrPanic("config", "current-context")
+func CurrentContext() string {
+	return runCommand("config", "current-context")
 }
 
-func ListNamespacedResourcesOfTypeOrPanic(namespace string, resourceType string) []string {
-	rawString := runCommandOrPanic("-n", namespace, "get", resourceType, "-o", "name")
+func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
+	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
 	itemsWithPrefixes := stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
 	return funk.Map(itemsWithPrefixes, func(in string) string {
 		return stringutil.RemoveUpToAndIncluding(in, "/")
 	}).([]string)
 }
 
-func DownloadNamespacedResourceOrPanic(namespace string, resourceType string, resourceName string, format string) string {
-	rawString := runCommandOrPanic("-n", namespace, "get", resourceType, resourceName, "-o", format)
+func DownloadNamespacedResource(namespace string, resourceType string, resourceName string, format string) string {
+	rawString := runCommand("-n", namespace, "get", resourceType, resourceName, "-o", format)
 	return rawString
 }
 
-func DownloadGlobalResourceOrPanic(resourceType string, resourceName string, format string) string {
-	rawString := runCommandOrPanic("get", resourceType, resourceName, "-o", format)
+func DownloadGlobalResource(resourceType string, resourceName string, format string) string {
+	rawString := runCommand("get", resourceType, resourceName, "-o", format)
 	return rawString
 }
 
-func DownloadEverythingOrPanic(types []*ApiResourceType) string {
+func DownloadEverything(types []*ApiResourceType) string {
 
 	qualifiedTypenames := funk.Map(types, func(in *ApiResourceType) string {
 		return in.QualifiedName
 	}).([]string)
 
-	return runCommandOrPanic("get", strings.Join(qualifiedTypenames, ","), "--all-namespaces", "-o", "yaml")
+	return runCommand("get", strings.Join(qualifiedTypenames, ","), "--all-namespaces", "-o", "yaml")
 }
 
-func DownloadEverythingInNamespaceOrPanic(types []*ApiResourceType, namespace string) string {
+func DownloadEverythingInNamespace(types []*ApiResourceType, namespace string) string {
 
 	qualifiedTypenames := funk.Map(types, func(in *ApiResourceType) string {
 		return in.QualifiedName
 	}).([]string)
 
-	return runCommandOrPanic("get", strings.Join(qualifiedTypenames, ","), "-n", namespace, "-o", "yaml")
+	return runCommand("get", strings.Join(qualifiedTypenames, ","), "-n", namespace, "-o", "yaml")
 }
 
-func DownloadEverythingOfTypeOrPanic(tpe *ApiResourceType) string {
-	return runCommandOrPanic("get", tpe.QualifiedName, "-o", "yaml")
+func DownloadEverythingOfType(tpe *ApiResourceType) string {
+	return runCommand("get", tpe.QualifiedName, "-o", "yaml")
 }
 
-func DownloadEverythingOfTypeInNamespaceOrPanic(tpe *ApiResourceType, namespace string) string {
-	return runCommandOrPanic("get", "-n", namespace, tpe.QualifiedName, "-o", "yaml")
+func DownloadEverythingOfTypeInNamespace(tpe *ApiResourceType, namespace string) string {
+	return runCommand("get", "-n", namespace, tpe.QualifiedName, "-o", "yaml")
 }
 
-func ParseK8sYamlOrPanic(in string) []*K8sResource {
+func ParseK8sYaml(in string) []*K8sResource {
 
 	root := make(map[string]interface{})
 
@@ -175,9 +175,9 @@ type ApiResourceTypesAccessible struct {
 	Namespaced []*ApiResourceType
 }
 
-func ApiResourceTypesOrPanic() ApiResourceTypesResponse {
+func ApiResourceTypes() ApiResourceTypesResponse {
 
-	rawString := runCommandOrPanic("api-resources", "-o", "wide")
+	rawString := runCommand("api-resources", "-o", "wide")
 
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
 
@@ -221,7 +221,7 @@ func ApiResourceTypesOrPanic() ApiResourceTypesResponse {
 	}
 }
 
-func runCommandOrPanic(args ...string) string {
+func runCommand(args ...string) string {
 
 	if !shell.CommandExists("kubectl") {
 		panic("kubectl not on path!")
