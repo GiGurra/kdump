@@ -24,9 +24,13 @@ NAME:
 USAGE:
    kdump [global options] [arguments...]
 
+VERSION:
+   2.0-go-beta
+
 GLOBAL OPTIONS:
    --output-dir value, -o value    output directory to create
    --delete-previous-dir           if to delete previous output directory (default: false)
    --secrets-encryption-key value  symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
    --help, -h                      show help (default: false)
+   --version, -v                   print the version (default: false)
    ```
