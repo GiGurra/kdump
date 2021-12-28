@@ -22,6 +22,10 @@ type ApiResourceType struct {
 	QualifiedName string
 }
 
+func (r *ApiResourceType) IsSecret() bool {
+	return strings.ToLower(r.Name) == "secret" || strings.ToLower(r.Name) == "secrets"
+}
+
 type Resource struct {
 	Kind              string           `yaml:"kind"`
 	ApiVersion        string           `yaml:"apiVersion"`
@@ -39,7 +43,7 @@ func (r *Resource) IsGlobal() bool {
 }
 
 func (r *Resource) IsSecret() bool {
-	return strings.ToLower(r.Kind) == "secret"
+	return strings.ToLower(r.Kind) == "secret" || strings.ToLower(r.Kind) == "secrets"
 }
 
 func ParseResources(in string) []*Resource {

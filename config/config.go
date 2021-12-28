@@ -112,7 +112,7 @@ func (config *AppConfig) IncludeSecrets() bool {
 func (config *AppConfig) IsResourceIncluded(resourceType *k8s.ApiResourceType) bool {
 	return !funk.ContainsString(config.ExcludedResourceTypes, resourceType.Name) &&
 		!funk.ContainsString(config.ExcludedResourceTypes, resourceType.QualifiedName) &&
-		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets())
+		(!resourceType.IsSecret() || config.IncludeSecrets())
 }
 
 func (config *AppConfig) FilterIncludedResources(resourceTypes []*k8s.ApiResourceType) []*k8s.ApiResourceType {
