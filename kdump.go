@@ -20,32 +20,13 @@ func main() {
 
 	app.HideHelpCommand = true
 	app.Usage = "Dump all kubernetes resources as yaml files to a dir"
-
-	app.Flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:     "output-dir",
-			Aliases:  []string{"o"},
-			Usage:    "output directory to create",
-			Required: true,
-		},
-		&cli.BoolFlag{
-			Name:  "delete-previous-dir",
-			Usage: "if to delete previous output directory",
-			Value: false,
-		},
-		&cli.StringFlag{
-			Name:  "secrets-encryption-key",
-			Usage: "symmetric secrets encryption hex key for aes GCM (lower case 64 chars)",
-		},
-	}
-
+	app.Flags = config.CliFlags
 	app.Version = version
-
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
-		appConfig.OutputDir = c.String("output-dir")
-		appConfig.DeletePrevDir = c.Bool("delete-previous-dir")
-		appConfig.SecretsEncryptKey = c.String("secrets-encryption-key")
+		appConfig.OutputDir = c.String(config.OutputDirFlag.Name)
+		appConfig.DeletePrevDir = c.Bool(config.DeletePrevDirFlag.Name)
+		appConfig.SecretsEncryptKey = c.String(config.EncryptKeyFlag.Name)
 		appConfig.Validate()
 		dumpCurrentContext(appConfig)
 		return nil
