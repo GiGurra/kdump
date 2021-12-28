@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kdump/config"
+	"github.com/gigurra/kdump/internal/cliUtil"
 	"github.com/gigurra/kdump/internal/crypt"
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/k8s"
@@ -20,13 +21,13 @@ func main() {
 
 	app.HideHelpCommand = true
 	app.Usage = "Dump all kubernetes resources as yaml files to a dir"
-	app.Flags = config.CliFlags
+	app.Flags = cliUtil.FindAllFlags(config.CliFlags)
 	app.Version = version
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
-		appConfig.OutputDir = c.String(config.CliFlag.OutputDir.Name)
-		appConfig.DeletePrevDir = c.Bool(config.CliFlag.DeletePrevDir.Name)
-		appConfig.SecretsEncryptKey = c.String(config.CliFlag.EncryptKey.Name)
+		appConfig.OutputDir = c.String(config.CliFlags.OutputDir.Name)
+		appConfig.DeletePrevDir = c.Bool(config.CliFlags.DeletePrevDir.Name)
+		appConfig.SecretsEncryptKey = c.String(config.CliFlags.EncryptKey.Name)
 		appConfig.Validate()
 		dumpCurrentContext(appConfig)
 		return nil
