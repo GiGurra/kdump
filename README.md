@@ -16,7 +16,7 @@ NOTE: also dumps secrets, if you explicitly tell it to do so by providing an enc
 
 ```
 
-╰─>$ ./kdump --help
+╰─>$ kdump --help
 
 NAME:
    kdump - Dump all kubernetes resources as yaml files to a dir
@@ -25,7 +25,7 @@ USAGE:
    kdump [global options] [arguments...]
 
 VERSION:
-   2.0-go-beta
+   v1.26.0
 
 GLOBAL OPTIONS:
    --output-dir value, -o value    output directory to create
