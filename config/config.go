@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/gigurra/kdump/internal/kubectl"
+	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/thoas/go-funk"
 	"strings"
 )
@@ -84,14 +84,14 @@ func GetDefaultAppConfig() AppConfig {
 	}
 }
 
-func (config *AppConfig) IsResourceIncluded(resourceType *kubectl.ApiResourceType) bool {
+func (config *AppConfig) IsResourceIncluded(resourceType *k8s.ApiResourceType) bool {
 	return !funk.ContainsString(config.ExcludedResourceTypes, resourceType.Name) &&
 		!funk.ContainsString(config.ExcludedResourceTypes, resourceType.QualifiedName) &&
 		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets)
 }
 
-func (config *AppConfig) FilterIncludedResources(resourceTypes []*kubectl.ApiResourceType) []*kubectl.ApiResourceType {
-	return funk.Filter(resourceTypes, func(r *kubectl.ApiResourceType) bool {
+func (config *AppConfig) FilterIncludedResources(resourceTypes []*k8s.ApiResourceType) []*k8s.ApiResourceType {
+	return funk.Filter(resourceTypes, func(r *k8s.ApiResourceType) bool {
 		return config.IsResourceIncluded(r)
-	}).([]*kubectl.ApiResourceType)
+	}).([]*k8s.ApiResourceType)
 }

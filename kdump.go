@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kdump/config"
-	"github.com/gigurra/kdump/internal/coll"
 	"github.com/gigurra/kdump/internal/fileutil"
-	"github.com/gigurra/kdump/internal/kubectl"
+	"github.com/gigurra/kdump/internal/k8s"
+	"github.com/gigurra/kdump/internal/k8s/kubectl"
 	"log"
 )
 
@@ -26,10 +26,8 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Parsing %d bytes...\n", len(everything))
 
-	k8sResources := kubectl.ParseK8sYaml(everything)
-	k8sResourcesByNamespace := coll.GroupBy(k8sResources, func(r *kubectl.K8sResource) string {
-		return r.MetaData.Namespace
-	}).(map[string][]*kubectl.K8sResource)
+	k8sResources := k8s.ParseResources(everything)
+	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
 	log.Printf("Deleting old data in '%s'...\n", outputDirRoot)
 

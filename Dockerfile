@@ -9,10 +9,10 @@
 ##RUN [ -s "./root/.nvm/nvm.sh" ] &&  \. "./root/.nvm/nvm.sh"  && nvm install 16 && nvm use 16
 #
 #
-## install kubectl
+## install k8s
 #RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl
-#RUN chmod +x ./kubectl
-#RUN mv ./kubectl /usr/local/bin/kubectl
+#RUN chmod +x ./k8s
+#RUN mv ./k8s /usr/local/bin/k8s
 #
 ## install git
 #RUN mkdir ~/.ssh
