@@ -6,14 +6,6 @@ import (
 	"reflect"
 )
 
-func HasKey(dict map[string]interface{}, key string) bool {
-	if _, ok := dict[key]; ok {
-		return true
-	} else {
-		return false
-	}
-}
-
 func GroupBy(list interface{}, pivotFunc interface{}) interface{} {
 
 	if !funk.IsCollection(list) {
