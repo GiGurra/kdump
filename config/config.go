@@ -19,6 +19,7 @@ func (n NoEncryption) Encrypt(data string) []byte {
 
 type AppConfig struct {
 	OutputDir             string
+	DeletePrevDir         bool
 	ExcludedResourceTypes []string
 	IncludeSecrets        bool
 	SecretsEncryption     Encryption

@@ -12,14 +12,11 @@ import (
 	"strings"
 )
 
-func overrideStrIfNonEmpty(prev *string, override string) {
-	if len(strings.TrimSpace(override)) > 0 {
-		*prev = override
+func validateNonEmpty(str string) string {
+	if len(strings.TrimSpace(str)) == 0 {
+		log.Fatal("empty string is not allowed")
 	}
-}
-
-func overrideBool(prev *bool, override bool) {
-	*prev = override
+	return str
 }
 
 func main() {
@@ -31,10 +28,16 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:    "output-dir",
-			Aliases: []string{"o"},
-			Usage:   "output directory to create",
-			Value:   "test",
+			Name:     "output-dir",
+			Aliases:  []string{"o"},
+			Usage:    "output directory to create",
+			Required: true,
+		},
+		&cli.BoolFlag{
+			Name:    "delete-previous-dir",
+			Aliases: []string{"d"},
+			Usage:   "if to delete previous output directory",
+			Value:   false,
 		},
 		&cli.BoolFlag{
 			Name:  "include-secrets",
@@ -45,9 +48,9 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
-		overrideStrIfNonEmpty(&appConfig.OutputDir, c.String("output-dir"))
-		overrideBool(&appConfig.IncludeSecrets, c.Bool("include-secrets"))
-		//log.Printf("Config: \n%s\n", util.OrPanic(yaml.Marshal(appConfig)))
+		appConfig.OutputDir = validateNonEmpty(c.String("output-dir"))
+		appConfig.IncludeSecrets = c.Bool("include-secrets")
+		appConfig.DeletePrevDir = c.Bool("delete-previous-dir")
 		dumpCurrentContext(appConfig)
 		return nil
 	}
@@ -60,9 +63,11 @@ func main() {
 
 func dumpCurrentContext(appConfig config.AppConfig) {
 
+	log.Printf("Checking output dir..")
+	outputDirRoot := ensureRootOutputDir(appConfig)
+
 	log.Printf("Downloading all resources from current context")
 
-	outputDirRoot := appConfig.OutputDir
 	apiResourceTypes := kubectl.ApiResourceTypes()
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 	everything := kubectl.DownloadEverything(resourcesToDownload)
@@ -72,17 +77,12 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	k8sResources := k8s.ParseResources(everything)
 	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
-	log.Printf("Deleting old data in '%s'...\n", outputDirRoot)
-
-	fileutil.Delete(outputDirRoot, fmt.Sprintf("removal of outputdir '%s' failed", outputDirRoot))
-	fileutil.CreateFolder(outputDirRoot, fmt.Sprintf("could not create folder '%s'", outputDirRoot))
-
 	log.Printf("Storing resources in '%s'...\n", outputDirRoot)
 	for namespace, resources := range k8sResourcesByNamespace {
 		outDir := outputDirRoot
 		if namespace != "" {
 			outDir = outputDirRoot + "/" + namespace
-			fileutil.CreateFolder(outDir, "could not create output dir: "+outDir)
+			fileutil.CreateFolderIfNotExists(outDir, "could not create output dir: "+outDir)
 		}
 		for _, resource := range resources {
 			filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
@@ -93,4 +93,21 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			}
 		}
 	}
+}
+
+func ensureRootOutputDir(appConfig config.AppConfig) string {
+
+	out := appConfig.OutputDir
+
+	if appConfig.DeletePrevDir {
+		fileutil.Delete(out, fmt.Sprintf("removal of outputdir '%s' failed", out))
+	}
+
+	if fileutil.Exists(out, fmt.Sprintf("checking outputdir '%s' failed", out)) {
+		log.Fatal("Bailing! output-dir already exists: " + out)
+	}
+
+	fileutil.CreateFolderIfNotExists(out, fmt.Sprintf("could not create folder '%s'", out))
+
+	return out
 }

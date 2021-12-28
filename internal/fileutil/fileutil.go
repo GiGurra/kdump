@@ -28,11 +28,11 @@ func Exists(path string, notDeterminableMsg string) bool {
 	return false
 }
 
-func CreateFolder(path string, notPossibleMsg string) {
+func CreateFolderIfNotExists(path string, notPossibleMsg string) {
 
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
-		panic(notPossibleMsg)
+		panic(notPossibleMsg + ", reason: " + err.Error())
 	}
 }
 
