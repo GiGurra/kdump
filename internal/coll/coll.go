@@ -27,15 +27,15 @@ func GroupBy(list interface{}, pivotFunc interface{}) interface{} {
 	keyType := reflect.TypeOf(pivotFunc).Out(0)
 
 	arrayType := reflect.SliceOf(valueType)
-	groupType := reflect.MapOf(keyType, arrayType)
-	group := reflect.MakeMapWithSize(groupType, 0)
+	resultType := reflect.MapOf(keyType, arrayType)
+	result := reflect.MakeMapWithSize(resultType, 0)
 
 	for i := 0; i < count; i++ {
 
 	}
 
 	log.Printf("keyType: %#v", keyType.Kind().String())
-	log.Printf("group: %#v", group)
+	log.Printf("result: %#v", result)
 
 	return keys
 	/*
