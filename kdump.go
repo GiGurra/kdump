@@ -24,9 +24,9 @@ func main() {
 	app.Version = version
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
-		appConfig.OutputDir = c.String(config.OutputDirFlag.Name)
-		appConfig.DeletePrevDir = c.Bool(config.DeletePrevDirFlag.Name)
-		appConfig.SecretsEncryptKey = c.String(config.EncryptKeyFlag.Name)
+		appConfig.OutputDir = c.String(config.CliFlag.OutputDir.Name)
+		appConfig.DeletePrevDir = c.Bool(config.CliFlag.DeletePrevDir.Name)
+		appConfig.SecretsEncryptKey = c.String(config.CliFlag.EncryptKey.Name)
 		appConfig.Validate()
 		dumpCurrentContext(appConfig)
 		return nil
