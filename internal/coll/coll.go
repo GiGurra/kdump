@@ -12,6 +12,9 @@ func GroupBy(list interface{}, pivotFunc interface{}) interface{} {
 		panic(fmt.Sprintf("%v must be a collection (slice or array)", list))
 	}
 
+	// cheating here by using funk.Map, to get funk validation :).
+	// Could have used reflect to call the pivot function, but then
+	// I would need to re-implement all nice checks in go-funk
 	keys := funk.Map(list, pivotFunc)
 	count := reflect.ValueOf(keys).Len()
 
@@ -21,8 +24,8 @@ func GroupBy(list interface{}, pivotFunc interface{}) interface{} {
 	valueType := valuesR.Type().Elem()
 	keyType := reflect.TypeOf(pivotFunc).Out(0)
 
-	arrayType := reflect.SliceOf(valueType)
-	resultType := reflect.MapOf(keyType, arrayType)
+	sliceType := reflect.SliceOf(valueType)
+	resultType := reflect.MapOf(keyType, sliceType)
 	resultR := reflect.MakeMapWithSize(resultType, 0)
 
 	initGroupCap := 1 + count/3
@@ -38,7 +41,7 @@ func GroupBy(list interface{}, pivotFunc interface{}) interface{} {
 		groupR := resultR.MapIndex(keyR)
 
 		if groupR == (reflect.Value{}) {
-			groupR = reflect.MakeSlice(arrayType, 0, initGroupCap)
+			groupR = reflect.MakeSlice(sliceType, 0, initGroupCap)
 		}
 
 		newGroup := reflect.Append(groupR, valueR)
