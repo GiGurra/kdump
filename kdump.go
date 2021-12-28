@@ -64,7 +64,7 @@ func main() {
 func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Checking output dir..")
-	outputDirRoot := ensureRootOutputDir(appConfig)
+	rootOutputDir := ensureRootOutputDir(appConfig)
 
 	log.Printf("Downloading all resources from current context")
 
@@ -77,11 +77,11 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	k8sResources := k8s.ParseResources(everything)
 	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
-	log.Printf("Storing resources in '%s'...\n", outputDirRoot)
+	log.Printf("Storing resources in '%s'...\n", rootOutputDir)
 	for namespace, resources := range k8sResourcesByNamespace {
-		outDir := outputDirRoot
+		outDir := rootOutputDir
 		if namespace != "" {
-			outDir = outputDirRoot + "/" + namespace
+			outDir = rootOutputDir + "/" + namespace
 			fileutil.CreateFolderIfNotExists(outDir, "could not create output dir: "+outDir)
 		}
 		for _, resource := range resources {
