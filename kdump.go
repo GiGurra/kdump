@@ -6,13 +6,56 @@ import (
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/gigurra/kdump/internal/k8s/kubectl"
+	"github.com/urfave/cli/v2"
 	"log"
+	"os"
+	"strings"
 )
 
+func overrideStrIfNonEmpty(prev *string, override string) {
+	if len(strings.TrimSpace(override)) > 0 {
+		*prev = override
+	}
+}
+
+func overrideBool(prev *bool, override bool) {
+	*prev = override
+}
+
 func main() {
-	// TODO: Parse real config
-	appConfig := config.GetDefaultAppConfig()
-	dumpCurrentContext(appConfig)
+
+	app := cli.NewApp()
+
+	app.HideHelpCommand = true
+	app.Usage = "Dump all kubernetes resources as yaml files to a dir"
+
+	app.Flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:    "output-dir",
+			Aliases: []string{"o"},
+			Usage:   "output directory to create",
+			Value:   "test",
+		},
+		&cli.BoolFlag{
+			Name:  "include-secrets",
+			Usage: "if to include secrets",
+			Value: false,
+		},
+	}
+
+	app.Action = func(c *cli.Context) error {
+		appConfig := config.GetDefaultAppConfig()
+		overrideStrIfNonEmpty(&appConfig.OutputDir, c.String("output-dir"))
+		overrideBool(&appConfig.IncludeSecrets, c.Bool("include-secrets"))
+		//log.Printf("Config: \n%s\n", util.OrPanic(yaml.Marshal(appConfig)))
+		dumpCurrentContext(appConfig)
+		return nil
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func dumpCurrentContext(appConfig config.AppConfig) {
