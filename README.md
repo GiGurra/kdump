@@ -34,3 +34,8 @@ GLOBAL OPTIONS:
    --help, -h                      show help (default: false)
    --version, -v                   print the version (default: false)
    ```
+
+#### Code quality
+
+code quality level = "hacky hack". Go is a new language to me.
+tests = none.
