@@ -1,9 +1,8 @@
 package config
 
 import (
-	"github.com/gigurra/kdump/internal/refl"
+	"github.com/gigurra/kdump/internal/cliUtil"
 	"github.com/urfave/cli/v2"
-	"reflect"
 )
 
 var CliFlag = struct {
@@ -28,21 +27,4 @@ var CliFlag = struct {
 	},
 }
 
-var CliFlags = findAllFlags()
-
-////////////////////////////////////////////////////////////////////
-// Private helpers below...  prob should exist a better solution :D
-
-func findAllFlags() []cli.Flag {
-
-	out := make([]cli.Flag, 0, 20)
-
-	object := reflect.ValueOf(CliFlag)
-	count := object.NumField()
-
-	for i := 0; i < count; i++ {
-		out = append(out, refl.GetPtrToFieldCopy(object, i).Interface().(cli.Flag))
-	}
-
-	return out
-}
+var CliFlags = cliUtil.FindAllFlags(CliFlag)
