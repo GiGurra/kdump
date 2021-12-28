@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-// from https://www.melvinvivas.com/how-to-encrypt-and-decrypt-data-using-aes
+// Encrypt from https://www.melvinvivas.com/how-to-encrypt-and-decrypt-data-using-aes
 // Who knows if this is good encryption. I dont :S
 func Encrypt(stringToEncrypt string, keyString string) (encryptedString string) {
 
