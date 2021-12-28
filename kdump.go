@@ -21,7 +21,7 @@ func main() {
 
 	app.HideHelpCommand = true
 	app.Usage = "Dump all kubernetes resources as yaml files to a dir"
-	app.Flags = cliUtil.FindAllFlags(config.CliFlags)
+	app.Flags = cliUtil.FindAllFlags(&config.CliFlags)
 	app.Version = version
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()

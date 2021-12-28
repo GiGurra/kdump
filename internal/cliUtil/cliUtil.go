@@ -1,20 +1,25 @@
 package cliUtil
 
 import (
-	"github.com/gigurra/kdump/internal/refl"
+	"fmt"
 	"github.com/urfave/cli/v2"
 	"reflect"
 )
 
-func FindAllFlags(object interface{}) []cli.Flag {
+func FindAllFlags(pointerToStruct interface{}) []cli.Flag {
 
+	ptrR := reflect.ValueOf(pointerToStruct)
+
+	if ptrR.Kind() != reflect.Ptr {
+		panic(fmt.Sprintf("FindAllFlags needs pointer as input. Cannot use %#v", pointerToStruct))
+	}
+
+	objectR := ptrR.Elem()
 	out := make([]cli.Flag, 0, 20)
-
-	objectR := reflect.ValueOf(object)
 	count := objectR.NumField()
 
 	for i := 0; i < count; i++ {
-		out = append(out, refl.GetPtrToFieldCopy(objectR, i).Interface().(cli.Flag))
+		out = append(out, objectR.Field(i).Addr().Interface().(cli.Flag))
 	}
 
 	return out
