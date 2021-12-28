@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kdump/config"
+	"github.com/gigurra/kdump/internal/coll"
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/kubectl"
 	"log"
+	"syscall"
 )
 
 func main() {
@@ -18,6 +20,14 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Downloading all resources from current context")
 
+	testArray := []int{1, 2, 3}
+
+	coll.GroupBy(testArray, func(in int) string {
+		return ""
+	})
+
+	syscall.Exit(0)
+
 	outputDirRoot := appConfig.OutputDir
 	apiResourceTypes := kubectl.ApiResourceTypes()
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
@@ -25,7 +35,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Parsing %d bytes...\n", len(everything))
 
-	parsed := kubectl.ParseK8sYaml(everything)
+	k8sResources := kubectl.ParseK8sYaml(everything)
 
 	log.Printf("Deleting old data in '%s'...\n", outputDirRoot)
 
@@ -33,7 +43,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	fileutil.CreateFolder(outputDirRoot, fmt.Sprintf("could not create folder '%s'", outputDirRoot))
 
 	log.Printf("Storing resources in '%s'...\n", outputDirRoot)
-	for _, resource := range parsed {
+	for _, resource := range k8sResources {
 		filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
 		if resource.IsSecret() {
 			log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
