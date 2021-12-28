@@ -100,7 +100,7 @@ func ensureRootOutputDir(appConfig config.AppConfig) string {
 	out := appConfig.OutputDir
 
 	if appConfig.DeletePrevDir {
-		fileutil.Delete(out, fmt.Sprintf("removal of outputdir '%s' failed", out))
+		fileutil.DeleteIfExists(out, fmt.Sprintf("removal of outputdir '%s' failed", out))
 	}
 
 	if fileutil.Exists(out, fmt.Sprintf("checking outputdir '%s' failed", out)) {

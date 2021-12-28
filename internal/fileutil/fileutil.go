@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-func Delete(path string, notDeterminableMsg string) {
+func DeleteIfExists(path string, notDeterminableMsg string) {
 	err := os.RemoveAll(path)
 	if err != nil {
 		panic(notDeterminableMsg)
