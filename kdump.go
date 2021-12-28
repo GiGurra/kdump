@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kdump/config"
+	"github.com/gigurra/kdump/internal/coll"
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/kubectl"
 	"log"
@@ -25,7 +26,10 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Parsing %d bytes...\n", len(everything))
 
-	parsed := kubectl.ParseK8sYaml(everything)
+	k8sResources := kubectl.ParseK8sYaml(everything)
+	k8sResourcesByNamespace := coll.GroupBy(k8sResources, func(r *kubectl.K8sResource) string {
+		return r.MetaData.Namespace
+	}).(map[string][]*kubectl.K8sResource)
 
 	log.Printf("Deleting old data in '%s'...\n", outputDirRoot)
 
@@ -33,16 +37,19 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	fileutil.CreateFolder(outputDirRoot, fmt.Sprintf("could not create folder '%s'", outputDirRoot))
 
 	log.Printf("Storing resources in '%s'...\n", outputDirRoot)
-	for _, resource := range parsed {
-		filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
-		if resource.IsSecret() {
-			log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
-		} else if resource.IsNamespaced() {
-			nsOutputDir := outputDirRoot + "/" + resource.MetaData.Namespace
-			fileutil.CreateFolderIfMissing(nsOutputDir, "could not create output dir: "+nsOutputDir)
-			fileutil.String2File(nsOutputDir+"/"+filename, resource.SourceYaml)
-		} else {
-			fileutil.String2File(outputDirRoot+"/"+filename, resource.SourceYaml)
+	for namespace, resources := range k8sResourcesByNamespace {
+		outDir := outputDirRoot
+		if namespace != "" {
+			outDir = outputDirRoot + "/" + namespace
+			fileutil.CreateFolder(outDir, "could not create output dir: "+outDir)
+		}
+		for _, resource := range resources {
+			filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
+			if resource.IsSecret() {
+				log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
+			} else {
+				fileutil.String2File(outDir+"/"+filename, resource.SourceYaml)
+			}
 		}
 	}
 }
