@@ -7,6 +7,7 @@ import (
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/kubectl"
 	"log"
+	"strconv"
 	"syscall"
 )
 
@@ -20,11 +21,13 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Downloading all resources from current context")
 
-	testArray := []int{1, 2, 3}
+	testArray := []int{1, 1, 2, 3}
 
-	coll.GroupBy(testArray, func(in int) string {
-		return ""
+	mapped := coll.GroupBy(testArray, func(in int) string {
+		return strconv.Itoa(in + 1)
 	})
+
+	log.Printf("mapped: %+v", mapped)
 
 	syscall.Exit(0)
 
