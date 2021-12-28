@@ -1,8 +1,10 @@
 package config
 
 import (
+	"github.com/gigurra/kdump/internal/crypt"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/thoas/go-funk"
+	"log"
 	"strings"
 )
 
@@ -21,8 +23,7 @@ type AppConfig struct {
 	OutputDir             string
 	DeletePrevDir         bool
 	ExcludedResourceTypes []string
-	IncludeSecrets        bool
-	SecretsEncryption     Encryption
+	SecretsEncryptKey     string
 }
 
 func getDefaultExcludedResourceTypes() []string {
@@ -80,15 +81,38 @@ func GetDefaultAppConfig() AppConfig {
 	return AppConfig{
 		OutputDir:             "test",
 		ExcludedResourceTypes: getDefaultExcludedResourceTypes(),
-		IncludeSecrets:        false,
-		SecretsEncryption:     &NoEncryption{},
+		SecretsEncryptKey:     "",
 	}
+}
+
+func (config *AppConfig) Validate() {
+
+	validateNonEmpty := func(str string) string {
+		if len(strings.TrimSpace(str)) == 0 {
+			log.Fatal("empty string is not allowed")
+		}
+		return str
+	}
+
+	validateCryptoKey := func(key string) string {
+		crypt.Encrypt("Hello Encrypt", key)
+		return key
+	}
+
+	validateNonEmpty(config.OutputDir)
+	if len(config.SecretsEncryptKey) > 0 {
+		validateCryptoKey(config.SecretsEncryptKey)
+	}
+}
+
+func (config *AppConfig) IncludeSecrets() bool {
+	return len(config.SecretsEncryptKey) > 0
 }
 
 func (config *AppConfig) IsResourceIncluded(resourceType *k8s.ApiResourceType) bool {
 	return !funk.ContainsString(config.ExcludedResourceTypes, resourceType.Name) &&
 		!funk.ContainsString(config.ExcludedResourceTypes, resourceType.QualifiedName) &&
-		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets)
+		(strings.ToLower(resourceType.Name) != "secrets" || config.IncludeSecrets())
 }
 
 func (config *AppConfig) FilterIncludedResources(resourceTypes []*k8s.ApiResourceType) []*k8s.ApiResourceType {

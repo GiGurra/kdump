@@ -47,7 +47,10 @@ func CreateFolderIfMissing(path string, notPossibleMsg string) {
 }
 
 func String2File(path string, data string) {
-	bytes := []byte(data)
+	Bytes2File(path, []byte(data))
+}
+
+func Bytes2File(path string, bytes []byte) {
 	err := os.WriteFile(path, bytes, 0644)
 	if err != nil {
 		panic("Failed writing to file '" + path + "' due to " + err.Error())

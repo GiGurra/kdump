@@ -3,21 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kdump/config"
+	"github.com/gigurra/kdump/internal/crypt"
 	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/gigurra/kdump/internal/k8s/kubectl"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-	"strings"
 )
-
-func validateNonEmpty(str string) string {
-	if len(strings.TrimSpace(str)) == 0 {
-		log.Fatal("empty string is not allowed")
-	}
-	return str
-}
 
 func main() {
 
@@ -34,23 +27,22 @@ func main() {
 			Required: true,
 		},
 		&cli.BoolFlag{
-			Name:    "delete-previous-dir",
-			Aliases: []string{"d"},
-			Usage:   "if to delete previous output directory",
-			Value:   false,
-		},
-		&cli.BoolFlag{
-			Name:  "include-secrets",
-			Usage: "if to include secrets",
+			Name:  "delete-previous-dir",
+			Usage: "if to delete previous output directory",
 			Value: false,
+		},
+		&cli.StringFlag{
+			Name:  "secrets-encryption-key",
+			Usage: "symmetric secrets encryption hex key for aes GCM (lower case 64 chars)",
 		},
 	}
 
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
-		appConfig.OutputDir = validateNonEmpty(c.String("output-dir"))
-		appConfig.IncludeSecrets = c.Bool("include-secrets")
+		appConfig.OutputDir = c.String("output-dir")
 		appConfig.DeletePrevDir = c.Bool("delete-previous-dir")
+		appConfig.SecretsEncryptKey = c.String("secrets-encryption-key")
+		appConfig.Validate()
 		dumpCurrentContext(appConfig)
 		return nil
 	}
@@ -87,7 +79,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 		for _, resource := range resources {
 			filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
 			if resource.IsSecret() {
-				log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
+				fileutil.String2File(outDir+"/"+filename+".aes", crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
 			} else {
 				fileutil.String2File(outDir+"/"+filename, resource.SourceYaml)
 			}
