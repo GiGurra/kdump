@@ -19,7 +19,6 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	log.Printf("Downloading all resources from current context")
 
 	outputDirRoot := appConfig.OutputDir
-	namespaces := kubectl.Namespaces()
 	apiResourceTypes := kubectl.ApiResourceTypes()
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 	everything := kubectl.DownloadEverything(resourcesToDownload)
@@ -34,17 +33,15 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	fileutil.CreateFolder(outputDirRoot, fmt.Sprintf("could not create folder '%s'", outputDirRoot))
 
 	log.Printf("Storing resources in '%s'...\n", outputDirRoot)
-	for _, ns := range namespaces {
-		nsOutputDir := outputDirRoot + "/" + ns
-		fileutil.CreateFolder(nsOutputDir, "could not create folder: "+nsOutputDir)
-	}
-
 	for _, resource := range parsed {
 		filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
 		if resource.IsSecret() {
 			log.Printf("Ignoring secret storage (not yet implemented) for %s/%s: ", resource.MetaData.Namespace, resource.MetaData.Name)
 		} else if resource.IsNamespaced() {
 			nsOutputDir := outputDirRoot + "/" + resource.MetaData.Namespace
+			if !fileutil.Exists(nsOutputDir, "could not determine if outputdir exists: "+nsOutputDir) {
+				fileutil.CreateFolder(nsOutputDir, "could not create outputdir: "+nsOutputDir)
+			}
 			fileutil.String2File(nsOutputDir+"/"+filename, resource.SourceYaml)
 		} else {
 			fileutil.String2File(outputDirRoot+"/"+filename, resource.SourceYaml)
