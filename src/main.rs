@@ -24,7 +24,7 @@ fn main() {
     println!("Downloading all resources from current context");
 
 
-    let resources: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&util::k8s::kubectl::api_resource_types());
+    let resources: Vec<HashMap<String, String>> = util::k8s::kubectl::api_resource_types();
 
     for resource in &resources {
         println!("resource: {:?}", resource);
