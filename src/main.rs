@@ -24,9 +24,11 @@ fn main() {
 
     let resources = util::k8s::kubectl::api_resource_types();
 
-    for resource in resources {
+    for resource in &resources {
         println!("resource: {}", resource);
     }
+
+    util::string::parse_stdout_table(&resources)
 }
 
 fn ensure_root_output_dir(app_config: AppConfig) {
