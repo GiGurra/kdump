@@ -42,18 +42,6 @@ fn ensure_root_output_dir(app_config: AppConfig) {
     if util::file::path_exists(&app_config.output_dir) {
         panic!("output path exists!: {}", app_config.output_dir)
     }
-    /*
 
-        if appConfig.DeletePrevDir {
-            fileutil.DeleteIfExists(out, fmt.Sprintf("removal of outputdir '%s' failed", out))
-        }
-
-        if fileutil.Exists(out, fmt.Sprintf("checking outputdir '%s' failed", out)) {
-            log.Fatal("Bailing! output-dir already exists: " + out)
-        }
-
-        fileutil.CreateFolderIfNotExists(out, fmt.Sprintf("could not create folder '%s'", out))
-
-        return out*/
-
+    util::file::create_dir_all(&app_config.output_dir)
 }
