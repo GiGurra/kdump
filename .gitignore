@@ -69,3 +69,5 @@ test.old/
 kdump
 kdump.exe
 kdump.bin
+
+target/
