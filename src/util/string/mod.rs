@@ -11,6 +11,8 @@ pub fn parse_stdout_table(lines: &Vec<String>) {
     let headings_offsets = find_headings_offsets(headings_line);
     let headings = find_headings(headings_line, &headings_offsets);
 
+    let mut lineValues = Vec::<std::collections::HashMap<String, String>>::new();
+
     println!("headings: {:?}", headings);
 }
 
