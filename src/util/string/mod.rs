@@ -1,19 +1,38 @@
+use std::collections::HashMap;
+
 #[derive(Debug)]
 pub struct StdOutTableColumn {
     name: String,
     byte_offset: usize,
 }
 
-pub fn parse_stdout_table(lines: &Vec<String>) {
-    let headings_line = &lines[0]; // .split_whitespace().collect::<Vec<&str>>()
-    println!("head: {:?}", headings_line);
-
+pub fn parse_stdout_table(lines: &Vec<String>) -> Vec<HashMap<String, String>> {
+    let headings_line = &lines[0];
+    let data_lines = Vec::from(&lines[1..]);
     let headings_offsets = find_headings_offsets(headings_line);
     let headings = find_headings(headings_line, &headings_offsets);
+    let line_values = find_line_values(&data_lines, headings);
+    return line_values;
+}
 
-    let mut lineValues = Vec::<std::collections::HashMap<String, String>>::new();
-
-    println!("headings: {:?}", headings);
+fn find_line_values(data_lines: &Vec<String>, headings: Vec<StdOutTableColumn>) -> Vec<HashMap<String, String>> {
+    let mut line_values = Vec::<HashMap<String, String>>::new();
+    for data_line in data_lines {
+        let mut line_value = HashMap::<String, String>::new();
+        for (i_heading, heading) in headings.iter().enumerate() {
+            let end_index: usize =
+                if i_heading + 1 < headings.len() {
+                    headings[i_heading + 1].byte_offset
+                } else {
+                    data_line.len()
+                };
+            let str_value = &data_line[heading.byte_offset..end_index];
+            let heading_name = String::from(&heading.name);
+            line_value.insert(heading_name, String::from(str_value.trim()));
+        }
+        line_values.push(line_value);
+    }
+    line_values
 }
 
 fn find_headings_offsets(headings_line: &String) -> Vec<usize> {
@@ -31,7 +50,6 @@ fn find_headings_offsets(headings_line: &String) -> Vec<usize> {
 }
 
 fn find_headings(headings_line: &String, headings_offsets: &Vec<usize>) -> Vec<StdOutTableColumn> {
-
     let mut headings = Vec::<StdOutTableColumn>::new();
     for (vec_index, byte_offset) in headings_offsets.iter().enumerate() {
         let end_offset: usize =
