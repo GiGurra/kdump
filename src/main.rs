@@ -8,22 +8,17 @@ struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         return AppConfig {
-            output_dir: String::from("test"),
-            delete_prev_dir: false
+            output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
+            delete_prev_dir: true // TODO: Change to default false when implementing cli args
         };
     }
 }
 
 fn main() {
+
     println!("Checking output dir..");
-    let appConfig = AppConfig::default();
-    let root_output_dir = appConfig.output_dir;
-
-    print!("Checking if output dir '{}' exists... ", root_output_dir);
-
-    let output_dir_already_exists = util::file::path_exists("test");
-
-    println!("{}", if output_dir_already_exists { "yes" } else { "no" });
+    let app_config = AppConfig::default();
+    ensure_root_output_dir(app_config);
 
     /*
         let command_output = Command::new("kubectl")
@@ -38,10 +33,14 @@ fn main() {
         println!("Hello, world!, cmd line result={}, output={}, err={}", status_code, output_str, err_str);*/
 }
 
-fn ensure_root_output_dir(appConfig: AppConfig) {
+fn ensure_root_output_dir(app_config: AppConfig) {
 
-    if appConfig.delete_prev_dir {
-        util::file::delete_all_if_exists(&appConfig.output_dir)
+    if app_config.delete_prev_dir {
+        util::file::delete_all_if_exists(&app_config.output_dir)
+    }
+
+    if util::file::path_exists(&app_config.output_dir) {
+        panic!("output path exists!: {}", app_config.output_dir)
     }
     /*
 
