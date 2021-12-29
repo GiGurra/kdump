@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/gigurra/kdump/internal/crypt"
+	"github.com/gigurra/go-util/crypt"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/thoas/go-funk"
 	"log"
