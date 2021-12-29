@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/gigurra/go-util/cliUtil"
+	"github.com/gigurra/go-util/fileutil"
 	"github.com/gigurra/kdump/config"
-	"github.com/gigurra/kdump/internal/cliUtil"
 	"github.com/gigurra/kdump/internal/crypt"
-	"github.com/gigurra/kdump/internal/fileutil"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/gigurra/kdump/internal/k8s/kubectl"
 	"github.com/urfave/cli/v2"

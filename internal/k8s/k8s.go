@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"github.com/gigurra/kdump/internal/coll"
+	"github.com/gigurra/go-util/coll"
 	"github.com/thoas/go-funk"
 	"gopkg.in/yaml.v2"
 	"strings"

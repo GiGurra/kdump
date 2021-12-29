@@ -1,9 +1,9 @@
 package kubectl
 
 import (
+	"github.com/gigurra/go-util/shell"
+	"github.com/gigurra/go-util/stringutil"
 	"github.com/gigurra/kdump/internal/k8s"
-	"github.com/gigurra/kdump/internal/shell"
-	"github.com/gigurra/kdump/internal/stringutil"
 	"github.com/thoas/go-funk"
 	"os/exec"
 	"strings"
