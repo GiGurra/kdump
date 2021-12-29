@@ -13,8 +13,6 @@ import (
 	"os"
 )
 
-var version = "v1.26.x"
-
 func main() {
 
 	app := cli.NewApp()
@@ -22,7 +20,7 @@ func main() {
 	app.HideHelpCommand = true
 	app.Usage = "Dump all kubernetes resources as yaml files to a dir"
 	app.Flags = cliUtil.FindAllFlags(&config.CliFlags)
-	app.Version = version
+	app.Version = Version
 	app.Action = func(c *cli.Context) error {
 		appConfig := config.GetDefaultAppConfig()
 		appConfig.OutputDir = c.String(config.CliFlags.OutputDir.Name)
