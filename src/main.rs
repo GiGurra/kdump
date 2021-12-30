@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use itertools::Itertools;
+use log::log;
 use crate::config::AppConfig;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
@@ -16,10 +17,12 @@ fn main() {
 
     for hex_key in app_config.secrets_encryption_key {
 
-        let encrypted = util::crypt::encrypt("hejhej", &hex::decode(hex_key).unwrap());
+        let encrypted = util::crypt::encrypt("hejhej", &hex::decode(&hex_key.to_owned()).unwrap());
         log::info!("nonce_hex_string: {:?}", encrypted.nonce_hex_string);
         log::info!("encrypted_hex_string: {:?}", encrypted.encrypted_hex_string);
 
+        let decrypted = util::crypt::decrypt(&encrypted, &hex::decode(&hex_key.to_owned()).unwrap());
+        log::info!("decrypted: {}", decrypted);
 
     }
 

@@ -4,6 +4,9 @@ use aes_gcm::aead::{Aead, NewAead};
 
 use rand_chacha;
 use rand::prelude::*;
+use rand_chacha::ChaCha20Rng;
+
+// https://docs.rs/aes-gcm/latest/aes_gcm
 
 pub struct Encrypted {
     pub nonce_hex_string: String,
@@ -11,8 +14,6 @@ pub struct Encrypted {
 }
 
 pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
-    // https://docs.rs/aes-gcm/latest/aes_gcm/
-    use rand_chacha::ChaCha20Rng;
 
     let mut rng = ChaCha20Rng::from_entropy();
 
@@ -23,11 +24,21 @@ pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
     let cipher = Aes256Gcm::new_from_slice(key).unwrap();
     let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).unwrap();
 
-    let nonce_hex_string = hex::encode(nonce.to_vec());
-    let encrypted_hex_string = hex::encode(encrypted_bytes);
+    let plaintext = cipher.decrypt(nonce, encrypted_bytes.as_ref())
+        .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
 
     return Encrypted {
-        nonce_hex_string,
-        encrypted_hex_string,
+        nonce_hex_string: hex::encode(nonce.to_vec()),
+        encrypted_hex_string: hex::encode(encrypted_bytes),
     };
+}
+
+pub fn decrypt(input: &Encrypted, key: &[u8]) -> String {
+
+    let nonce_bytes = hex::decode(&input.nonce_hex_string).unwrap();
+    let nonce = Nonce::<U12>::from_slice(nonce_bytes.as_ref());
+    let mut cipher = Aes256Gcm::new_from_slice(key).unwrap();
+    let decrypted_bytes = cipher.decrypt(nonce, hex::decode(&input.encrypted_hex_string).unwrap().as_ref()).unwrap();
+
+    return String::from_utf8(decrypted_bytes).unwrap();
 }
