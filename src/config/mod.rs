@@ -38,6 +38,9 @@ enum Command {
         excluded_types: Vec<String>,
     },
 
+    /// List resource types available for download in the cluster
+    ClusterResourceTypes,
+
     /// Don't download resources - instead show default excluded types
     DefaultExcludedTypes,
 }
@@ -68,6 +71,14 @@ impl AppConfig {
                 println!("Default excluded types:");
                 for tpe in default_resources_excluded() {
                     println!(" - {}", tpe);
+                }
+                std::process::exit(0);
+            }
+            Command::ClusterResourceTypes => {
+                let types = util::k8s::kubectl::api_resource_types();
+                println!("Cluster types:");
+                for tpe in types.accessible.all {
+                    println!(" - {}", tpe.qualified_name());
                 }
                 std::process::exit(0);
             }
