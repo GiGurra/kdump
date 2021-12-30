@@ -1,9 +1,30 @@
 use std::collections::HashMap;
 
+use regex::Regex; // 1.1.8
+
 #[derive(Debug)]
 pub struct StdOutTableColumn {
     name: String,
     byte_offset: usize,
+}
+
+pub fn split_to_vec(input: &str, pat: &str, filter_empty: bool) -> Vec<String> {
+    return iter_to_vec(&mut input.split(pat), filter_empty);
+}
+
+pub fn split_to_vec_r(input: &str, pat: &Regex, filter_empty: bool) -> Vec<String> {
+    return iter_to_vec(&mut pat.split(input), filter_empty);
+}
+
+fn iter_to_vec<'a, T: Iterator<Item=&'a str>>(input: &'a mut T, filter_empty: bool) -> Vec<String> {
+    return input
+        .map(String::from)
+        .filter(|s| !s.is_empty() || !filter_empty)
+        .collect::<Vec<String>>();
+}
+
+pub fn remove_wrap(input: &str) -> &str {
+    return &input[1..input.len() - 1];
 }
 
 pub fn parse_stdout_table(lines: &Vec<String>) -> Vec<HashMap<String, String>> {
