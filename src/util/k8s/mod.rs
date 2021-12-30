@@ -1,5 +1,6 @@
 pub mod kubectl;
 
+use serde::{Serialize, Deserialize};
 use crate::util; // access all modules between util modules
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,6 +18,33 @@ pub struct ApiResourceType {
     pub verbs: Vec<String>,
     pub api_version: ApiVersion,
 }
+
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ApiResource {
+    pub tpe: ApiResourceType,
+    pub raw_source: String,
+    pub parsed_fields: bool,
+}
+
+
+#[derive(Debug, PartialEq, Clone)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResourceParsedFields {
+    pub kind: String,
+    pub api_version: String,
+    pub metadata: ApiResourceParsedFieldsMetaData,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResourceParsedFieldsMetaData {
+    pub name: String,
+    pub namespace: String,
+}
+
 
 impl ApiResourceType {
     pub fn qualified_name(&self) -> String {
@@ -41,4 +69,8 @@ pub fn parse_api_version(input: &str) -> ApiVersion {
             version: api_version_str_parts[0].to_string(),
         }
     };
+}
+
+pub fn parse_resource_list(data: &str) -> Vec<ApiResource> {
+
 }

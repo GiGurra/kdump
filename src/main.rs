@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use log::LevelFilter;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
@@ -25,6 +26,11 @@ fn main() {
     log::info!("Downloading all objects...");
 
     let everything_as_string = util::k8s::kubectl::download_everything(&resource_type_defs_to_download);
+
+    log::info!("Deserializing yaml...");
+
+    let deserialized_map: serde_yaml::Value = serde_yaml::from_str(&everything_as_string).unwrap();
+
     //println!("everything: \n{}", everything_as_string);
 
 
