@@ -20,7 +20,7 @@ kdump 0.1.0
 Dump all kubernetes resources as yaml files to a dir
 
 USAGE:
-    kdump.exe <SUBCOMMAND>
+    kdump <SUBCOMMAND>
 
 OPTIONS:
     -h, --help       Print help information
@@ -33,11 +33,11 @@ SUBCOMMANDS:
 ```
 ```
 kdump download --help
-kdump.exe-download 
+kdump-download 
 Normal usage. Download all resources
 
 USAGE:
-    kdump.exe download [OPTIONS] --output-dir <OUTPUT_DIR>
+    kdump download [OPTIONS] --output-dir <OUTPUT_DIR>
 
 OPTIONS:
     -o, --output-dir <OUTPUT_DIR>
