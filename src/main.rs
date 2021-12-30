@@ -14,6 +14,17 @@ fn main() {
 
     let app_config: AppConfig = config::AppConfig::from_cli_args();
 
+    for hex_key in app_config.secrets_encryption_key {
+
+        let encrypted = util::crypt::encrypt("hejhej", &hex::decode(hex_key).unwrap());
+        log::info!("nonce_hex_string: {:?}", encrypted.nonce_hex_string);
+        log::info!("encrypted_hex_string: {:?}", encrypted.encrypted_hex_string);
+
+
+    }
+
+    std::process::exit(0);
+
     log::info!("Checking output dir..");
     ensure_root_output_dir(&app_config);
 

@@ -5,7 +5,12 @@ use aes_gcm::aead::{Aead, NewAead};
 use rand_chacha;
 use rand::prelude::*;
 
-pub fn encrypt(input: &str, key: &str) -> Vec<u8> {
+pub struct Encrypted {
+    pub nonce_hex_string: String,
+    pub encrypted_hex_string: String,
+}
+
+pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
     // https://docs.rs/aes-gcm/latest/aes_gcm/
     use rand_chacha::ChaCha20Rng;
 
@@ -15,8 +20,14 @@ pub fn encrypt(input: &str, key: &str) -> Vec<u8> {
     let nonce_bytes: Vec<u8> = nonce_bytes_as_u32.iter().flat_map(|x| x.to_be_bytes()).collect();
 
     let nonce = Nonce::<U12>::from_slice(&nonce_bytes);
-    let cipher = Aes256Gcm::new_from_slice(key.as_bytes()).unwrap();
-    let ciphertext = cipher.encrypt(nonce, input.as_bytes()).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(key).unwrap();
+    let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).unwrap();
 
-    return ciphertext;
+    let nonce_hex_string = hex::encode(nonce.to_vec());
+    let encrypted_hex_string = hex::encode(encrypted_bytes);
+
+    return Encrypted {
+        nonce_hex_string,
+        encrypted_hex_string,
+    };
 }
