@@ -76,7 +76,8 @@ Cluster types:
  - orders.acme.cert-manager.io
  ...
 ```
-```kdump default-excluded-types
+```
+kdump default-excluded-types
 Default excluded types:
  - limitranges
  - podtemplates
