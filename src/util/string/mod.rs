@@ -18,8 +18,8 @@ pub fn split_to_vec_r(input: &str, pat: &Regex, filter_empty: bool) -> Vec<Strin
 
 fn iter_to_vec<'a, T: Iterator<Item=&'a str>>(input: &'a mut T, filter_empty: bool) -> Vec<String> {
     return input
-        .map(String::from)
         .filter(|s| !s.is_empty() || !filter_empty)
+        .map(String::from)
         .collect::<Vec<String>>();
 }
 

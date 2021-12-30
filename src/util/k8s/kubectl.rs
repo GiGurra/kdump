@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use regex::Regex;
 use crate::util::k8s::ApiResourceType;
 use super::super::super::*; // access all modules between util modules
@@ -17,13 +18,27 @@ pub fn api_resource_types() -> Vec<super::ApiResourceType> {
 }
 
 fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
+    let api_version_str_parts = util::string::split_to_vec(&map["APIVERSION"], "/", true);
+    let api_version =
+        if api_version_str_parts.len() > 1 {
+            super::ApiVersion {
+                name: api_version_str_parts[0].to_string(),
+                version: api_version_str_parts[1].to_string(),
+            }
+        } else {
+            super::ApiVersion {
+                name: "".to_string(),
+                version: api_version_str_parts[0].to_string(),
+            }
+        };
+
     ApiResourceType {
         name: String::from(&map["NAME"]),
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
-        namespaced: false,
+        namespaced: bool::from_str(&map["NAMESPACED"]).unwrap(),
         kind: String::from(&map["KIND"]),
         verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+").unwrap(), true),
-        api_version: super::ApiVersion { version: "".to_string(), name: "".to_string() },
+        api_version: api_version,
         qualified_name: "".to_string(),
     }
 }

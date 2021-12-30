@@ -2,8 +2,8 @@ pub mod kubectl;
 
 #[derive(Debug, PartialEq)]
 pub struct ApiVersion {
-    version: String,
     name: String,
+    version: String,
 }
 
 #[derive(Debug, PartialEq)]
