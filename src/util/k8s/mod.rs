@@ -8,6 +8,15 @@ pub struct ApiVersion {
     pub version: String,
 }
 
+impl Clone for ApiVersion {
+    fn clone(&self) -> Self {
+        ApiVersion {
+            name: self.name.to_string(),
+            version: self.version.to_string(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub struct ApiResourceType {
     pub name: String,
@@ -16,6 +25,19 @@ pub struct ApiResourceType {
     pub kind: String,
     pub verbs: Vec<String>,
     pub api_version: ApiVersion,
+}
+
+impl Clone for ApiResourceType {
+    fn clone(&self) -> Self {
+        ApiResourceType {
+            name: self.name.to_string(),
+            short_names: self.short_names.to_vec(),
+            namespaced: self.namespaced,
+            kind: self.kind.to_string(),
+            verbs: self.verbs.to_vec(),
+            api_version: self.api_version.clone()
+        }
+    }
 }
 
 impl ApiResourceType {

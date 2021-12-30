@@ -4,44 +4,65 @@ use std::collections::HashMap;
 use crate::util::k8s::*;
 use crate::util;
 
-pub struct ApiResourceTypes<'a> {
+#[derive(Debug, PartialEq)]
+pub struct ApiResourceTypes {
     pub all: Vec<ApiResourceType>,
-    pub accessible: AccessibleApiResourceTypes<'a>,
+    pub accessible: AccessibleApiResourceTypes,
 }
 
-impl ApiResourceTypes<'_> {
-    pub fn default<'a>() -> ApiResourceTypes<'a> {
+impl ApiResourceTypes {
+    pub fn from(all_values: Vec<ApiResourceType>) -> ApiResourceTypes {
+        return ApiResourceTypes {
+            all: all_values.to_vec(),
+            accessible: AccessibleApiResourceTypes::from(&all_values),
+        };
+    }
+}
+
+impl Clone for ApiResourceTypes {
+    fn clone(&self) -> Self {
         ApiResourceTypes {
-            all: vec![],
-            accessible: AccessibleApiResourceTypes::default(),
-        }
-    }
-
-    pub fn from<'a>(all_values: Vec<ApiResourceType>) -> ApiResourceTypes<'a> {
-        ApiResourceTypes {
-            all: all_values,
-            accessible: AccessibleApiResourceTypes::default(),
+            all: self.all.to_vec(),
+            accessible: self.accessible.clone(),
         }
     }
 }
 
-pub struct AccessibleApiResourceTypes<'a> {
-    pub all: Vec<&'a ApiResourceType>,
-    pub namespaced: Vec<&'a ApiResourceType>,
-    pub global: Vec<&'a ApiResourceType>,
+#[derive(Debug, PartialEq)]
+pub struct AccessibleApiResourceTypes {
+    pub all: Vec<ApiResourceType>,
+    pub namespaced: Vec<ApiResourceType>,
+    pub global: Vec<ApiResourceType>,
 }
 
-impl AccessibleApiResourceTypes<'_> {
-    pub fn default<'a>() -> AccessibleApiResourceTypes<'a> {
-        AccessibleApiResourceTypes {
-            all: vec![],
-            namespaced: vec![],
-            global: vec![],
-        }
+impl Clone for AccessibleApiResourceTypes {
+    fn clone(&self) -> Self {
+        return AccessibleApiResourceTypes {
+            all: self.all.to_vec(),
+            namespaced: self.namespaced.to_vec(),
+            global: self.global.to_vec(),
+        };
     }
 }
 
-pub fn api_resource_types<'a>() -> ApiResourceTypes<'a> {
+impl AccessibleApiResourceTypes {
+    pub fn from(all_values: &Vec<ApiResourceType>) -> AccessibleApiResourceTypes {
+        let accessible_resources =
+            all_values.clone()
+                .iter()
+                .filter(|x| x.verbs.contains(&"get".to_string()))
+                .map(|x| x.clone())
+                .collect::<Vec<ApiResourceType>>();
+
+        return AccessibleApiResourceTypes {
+            all: accessible_resources.to_vec(),
+            namespaced: accessible_resources.iter().filter(|x| x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
+            global: accessible_resources.iter().filter(|x| !x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
+        };
+    }
+}
+
+pub fn api_resource_types() -> ApiResourceTypes {
     let result = util::shell::run_command(
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );

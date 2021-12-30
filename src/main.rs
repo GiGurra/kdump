@@ -1,5 +1,8 @@
+use crate::util::k8s::kubectl::ApiResourceTypes;
+
 mod util;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct AppConfig {
     pub output_dir: String,
     pub delete_prev_dir: bool,
@@ -22,9 +25,9 @@ fn main() {
     println!("Downloading all resources from current context");
 
 
-    let resources = util::k8s::kubectl::api_resource_types();
+    let resources: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
 
-    for resource in &resources.all {
+    for resource in &resources.accessible.namespaced {
         println!("resource: {:?}", resource);
     }
 }
