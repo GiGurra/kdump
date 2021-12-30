@@ -44,6 +44,7 @@ impl AccessibleApiResourceTypes {
 }
 
 pub fn api_resource_types() -> ApiResourceTypes {
+
     let result = util::shell::run_command(
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );

@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
 use simple_logger::SimpleLogger;
@@ -6,7 +7,7 @@ mod util;
 mod config;
 
 fn main() {
-    SimpleLogger::new().init().unwrap();
+    SimpleLogger::new().with_level(LevelFilter::Info).init().unwrap();
 
     log::info!("Checking output dir..");
     let app_config = config::AppConfig::default();
