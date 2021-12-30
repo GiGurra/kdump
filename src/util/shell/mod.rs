@@ -4,5 +4,5 @@ pub fn run_command(cmd: &mut std::process::Command) -> String {
         return String::from_utf8(output.stdout).unwrap();
     }
 
-    panic!("command finished with status={}, stderr={}", output.status, String::from_utf8(output.stderr).unwrap());
+    panic!("command {:?} finished with status={}, stderr={}", cmd.get_program(), output.status, String::from_utf8(output.stderr).unwrap());
 }

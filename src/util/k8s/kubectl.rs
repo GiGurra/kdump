@@ -9,7 +9,7 @@ pub struct ApiResourceTypes<'a> {
     accessible: AccessibleApiResourceTypes<'a>,
 }
 
-impl ApiResourceTypes <'_> {
+impl ApiResourceTypes<'_> {
     pub fn default<'a>() -> ApiResourceTypes<'a> {
         ApiResourceTypes {
             all: vec![],
@@ -31,7 +31,7 @@ pub struct AccessibleApiResourceTypes<'a> {
     global: Vec<&'a ApiResourceType>,
 }
 
-impl AccessibleApiResourceTypes <'_> {
+impl AccessibleApiResourceTypes<'_> {
     pub fn default<'a>() -> AccessibleApiResourceTypes<'a> {
         AccessibleApiResourceTypes {
             all: vec![],
@@ -50,13 +50,12 @@ pub fn api_resource_types<'a>() -> ApiResourceTypes<'a> {
 
     let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
 
-    let list = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
+    let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 
     return ApiResourceTypes::from(list);
 }
 
 fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
-
     return ApiResourceType {
         name: String::from(&map["NAME"]),
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
