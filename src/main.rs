@@ -15,7 +15,7 @@ fn main() {
     SimpleLogger::new().with_level(LevelFilter::Info).init().unwrap();
 
     log::info!("Checking output dir..");
-    let app_config = config::AppConfig::default();
+    let app_config = config::AppConfig::default(); // TODO: Implement cmd line args
     ensure_root_output_dir(&app_config);
 
     log::info!("Checking what k8s types to download...");
@@ -44,7 +44,7 @@ fn main() {
             let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
             let file_path = output_dir.to_string() + "/" + &file_name;
             if resource.is_secret() {
-                log::warn!("Secrets not implemented, ignoring {}", file_path);
+                log::warn!("Secrets not implemented, ignoring {}", file_path);  // TODO: Implement secrets handling/encryption
             } else {
                 std::fs::write(&file_path, &resource.raw_source).expect(&format!("Unable to write file {}", file_path));
             }
