@@ -8,6 +8,17 @@ pub struct AppConfig {
     pub encryption_key: Option<String>,
 }
 
+impl Default for AppConfig {
+    fn default() -> Self {
+        return AppConfig {
+            output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
+            delete_prev_dir: true, // TODO: Change to default false when implementing cli args
+            excluded_types: default_resources_excluded(),
+            encryption_key: None,
+        };
+    }
+}
+
 impl AppConfig {
     pub fn include_secrets(&self) -> bool {
         return self.encryption_key.is_some();
@@ -27,16 +38,6 @@ impl AppConfig {
     }
 }
 
-impl Default for AppConfig {
-    fn default() -> Self {
-        return AppConfig {
-            output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
-            delete_prev_dir: true, // TODO: Change to default false when implementing cli args
-            excluded_types: default_resources_excluded(),
-            encryption_key: None,
-        };
-    }
-}
 
 pub fn default_resources_excluded() -> Vec<String> {
     return vec![
