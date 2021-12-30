@@ -57,6 +57,12 @@ pub fn api_resource_types() -> ApiResourceTypes {
     return ApiResourceTypes::from(list);
 }
 
+pub fn download_everything(types_to_download: &Vec<&ApiResourceType>) -> String {
+    let qualified_names: Vec<String> = types_to_download.iter().map(|x| x.qualified_name()).collect();
+    let qualified_names_joined: String = qualified_names.join(",");
+    return util::shell::run_command(std::process::Command::new("kubectl").arg("get").arg(&qualified_names_joined).arg("-o").arg("yaml"));
+}
+
 fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
     return ApiResourceType {
         name: String::from(&map["NAME"]),

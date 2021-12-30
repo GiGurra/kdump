@@ -1,22 +1,33 @@
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
+use simple_logger::SimpleLogger;
 
 mod util;
 mod config;
 
 fn main() {
-    println!("Checking output dir..");
+    SimpleLogger::new().init().unwrap();
+
+    log::info!("Checking output dir..");
     let app_config = config::AppConfig::default();
     ensure_root_output_dir(&app_config);
 
-    println!("Downloading all resources from current context");
+    log::info!("Checking what k8s types to download...");
 
     let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
     let resource_type_defs_to_download: Vec<&ApiResourceType> = app_config.types_do_download(&all_resource_type_defs);
 
-    for resource in &resource_type_defs_to_download {
-        println!("resource: {:?}", resource);
-    }
+    // for resource in &resource_type_defs_to_download {
+    //   println!("resource: {:?}", resource);
+    //}
+
+    log::info!("Downloading all objects...");
+
+    let everything_as_string = util::k8s::kubectl::download_everything(&resource_type_defs_to_download);
+    //println!("everything: \n{}", everything_as_string);
+
+
+    log::info!("DONE!");
 }
 
 fn ensure_root_output_dir(app_config: &config::AppConfig) {
