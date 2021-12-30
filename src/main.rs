@@ -3,6 +3,8 @@ use log::LevelFilter;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
 use simple_logger::SimpleLogger;
+use crate::k8s::ApiResource;
+use crate::util::k8s;
 
 mod util;
 mod config;
@@ -19,17 +21,17 @@ fn main() {
     let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
     let resource_type_defs_to_download: Vec<&ApiResourceType> = app_config.types_do_download(&all_resource_type_defs);
 
-    // for resource in &resource_type_defs_to_download {
-    //   println!("resource: {:?}", resource);
-    //}
-
     log::info!("Downloading all objects...");
 
     let everything_as_string = util::k8s::kubectl::download_everything(&resource_type_defs_to_download);
 
     log::info!("Deserializing yaml...");
 
-    let deserialized_map: serde_yaml::Value = serde_yaml::from_str(&everything_as_string).unwrap();
+    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string);
+
+    for resource in resources {
+       println!("resource: {}", resource.parsed_fields.qualified_type_name());
+    }
 
     //println!("everything: \n{}", everything_as_string);
 
