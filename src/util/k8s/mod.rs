@@ -103,13 +103,14 @@ pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> Vec<ApiRes
 
     let item_list: &Vec<Value> = root_object.get(&Value::from("items")).unwrap().as_sequence().unwrap();
 
-    return item_list.iter().map(|x| parse_resource(x, remove_status_fields)).collect::<Vec<ApiResource>>();
+    item_list.iter().map(|x| parse_resource(x, remove_status_fields)).collect::<Vec<ApiResource>>()
 }
 
 pub fn parse_resource(data: &Value, remove_status_fields: bool) -> ApiResource {
     let fields: ApiResourceParsedFields = serde_yaml::from_value::<ApiResourceParsedFields>(data.to_owned()).unwrap();
 
     let mut data_copy = data.as_mapping().unwrap().clone();
+
     if remove_status_fields {
         data_copy.remove(&Value::from("status"));
         data_copy.remove(&Value::from("lastRefresh"));
