@@ -26,7 +26,7 @@ fn main() {
 
     log::info!("Deserializing yaml...");
 
-    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string);
+    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true);
 
     for resource in resources {
         if !resource.is_secret() {

@@ -96,21 +96,27 @@ pub fn parse_api_version(input: &str) -> ApiVersion {
         };
 }
 
-pub fn parse_resource_list(data: &str) -> Vec<ApiResource> {
+pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> Vec<ApiResource> {
     let deserialized_map: serde_yaml::Value = serde_yaml::from_str(&data).unwrap();
 
     let root_object = deserialized_map.as_mapping().unwrap();
 
     let item_list: &Vec<Value> = root_object.get(&Value::from("items")).unwrap().as_sequence().unwrap();
 
-    return item_list.iter().map(parse_resource).collect::<Vec<ApiResource>>();
+    return item_list.iter().map(|x| parse_resource(x, remove_status_fields)).collect::<Vec<ApiResource>>();
 }
 
-pub fn parse_resource(data: &Value) -> ApiResource {
+pub fn parse_resource(data: &Value, remove_status_fields: bool) -> ApiResource {
     let fields: ApiResourceParsedFields = serde_yaml::from_value::<ApiResourceParsedFields>(data.to_owned()).unwrap();
 
+    let mut data_copy = data.as_mapping().unwrap().clone();
+    if remove_status_fields {
+        data_copy.remove(&Value::from("status"));
+        data_copy.remove(&Value::from("lastRefresh"));
+    }
+
     ApiResource {
-        raw_source: serde_yaml::to_string(data).unwrap(),
+        raw_source: serde_yaml::to_string(&data_copy).unwrap(),
         parsed_fields: fields,
     }
 }
