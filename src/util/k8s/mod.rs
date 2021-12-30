@@ -1,7 +1,7 @@
 pub mod kubectl;
 
-use serde::{Serialize, Deserialize};
-use crate::{ApiResourceTypes, util}; // access all modules between util modules
+use serde::Deserialize;
+use crate::util; // access all modules between util modules
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiVersion {

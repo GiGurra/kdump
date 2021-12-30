@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use log::LevelFilter;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
