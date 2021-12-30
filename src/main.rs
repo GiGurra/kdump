@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::util::k8s::ApiResourceType;
 
 mod util;
 
@@ -24,7 +25,7 @@ fn main() {
     println!("Downloading all resources from current context");
 
 
-    let resources: Vec<HashMap<String, String>> = util::k8s::kubectl::api_resource_types();
+    let resources: Vec<ApiResourceType> = util::k8s::kubectl::api_resource_types();
 
     for resource in &resources {
         println!("resource: {:?}", resource);
