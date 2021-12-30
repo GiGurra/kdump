@@ -32,7 +32,7 @@ fn main() {
     let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true);
     let resources_by_namespace: HashMap<Option<String>, Vec<&ApiResource>> = resources.iter().into_group_map_by(|a| a.parsed_fields.metadata.namespace.clone());
 
-    log::info!("Deserializing yaml...");
+    log::info!("Writing yaml files...");
 
     for (namespace_opt, resources) in resources_by_namespace {
         let output_dir: String = match namespace_opt {
