@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crate::util::k8s::*;
 use crate::util;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ApiResourceTypes {
     pub all: Vec<ApiResourceType>,
     pub accessible: AccessibleApiResourceTypes,
@@ -19,30 +19,11 @@ impl ApiResourceTypes {
     }
 }
 
-impl Clone for ApiResourceTypes {
-    fn clone(&self) -> Self {
-        ApiResourceTypes {
-            all: self.all.to_vec(),
-            accessible: self.accessible.clone(),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct AccessibleApiResourceTypes {
     pub all: Vec<ApiResourceType>,
     pub namespaced: Vec<ApiResourceType>,
     pub global: Vec<ApiResourceType>,
-}
-
-impl Clone for AccessibleApiResourceTypes {
-    fn clone(&self) -> Self {
-        return AccessibleApiResourceTypes {
-            all: self.all.to_vec(),
-            namespaced: self.namespaced.to_vec(),
-            global: self.global.to_vec(),
-        };
-    }
 }
 
 impl AccessibleApiResourceTypes {
