@@ -1,38 +1,25 @@
+use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
 
 mod util;
-
-#[derive(Debug, PartialEq, Clone)]
-pub struct AppConfig {
-    pub output_dir: String,
-    pub delete_prev_dir: bool,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        return AppConfig {
-            output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
-            delete_prev_dir: true, // TODO: Change to default false when implementing cli args
-        };
-    }
-}
+mod config;
 
 fn main() {
     println!("Checking output dir..");
-    let app_config = AppConfig::default();
-    ensure_root_output_dir(app_config);
+    let app_config = config::AppConfig::default();
+    ensure_root_output_dir(&app_config);
 
     println!("Downloading all resources from current context");
 
+    let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
+    let resource_type_defs_to_download: Vec<&ApiResourceType> = app_config.types_do_download(&all_resource_type_defs);
 
-    let resources: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
-
-    for resource in &resources.accessible.namespaced {
+    for resource in &resource_type_defs_to_download {
         println!("resource: {:?}", resource);
     }
 }
 
-fn ensure_root_output_dir(app_config: AppConfig) {
+fn ensure_root_output_dir(app_config: &config::AppConfig) {
     if app_config.delete_prev_dir {
         util::file::delete_all_if_exists(&app_config.output_dir);
     }
