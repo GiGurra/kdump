@@ -11,3 +11,4 @@ serde_yaml = "0.8"
 regex = "1"
 log = { version = "0.4", features = ["std", "serde"] }
 simple_logger = "1.16.0"
+itertools = "0.10.3"

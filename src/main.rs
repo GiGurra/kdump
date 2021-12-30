@@ -1,12 +1,15 @@
+use std::collections::HashMap;
 use log::LevelFilter;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
 use simple_logger::SimpleLogger;
 use crate::k8s::ApiResource;
 use crate::util::k8s;
+use itertools::Itertools;
 
 mod util;
 mod config;
+
 
 fn main() {
     SimpleLogger::new().with_level(LevelFilter::Info).init().unwrap();
@@ -27,11 +30,28 @@ fn main() {
     log::info!("Deserializing yaml...");
 
     let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true);
+    let resources_by_namespace: HashMap<Option<String>, Vec<&ApiResource>> = resources.iter().into_group_map_by(|a| a.parsed_fields.metadata.namespace.clone());
 
-    for resource in resources {
-        if !resource.is_secret() {
-            println!("{}: {:?}", resource.qualified_type_name(), resource.parsed_fields);
-        }
+    log::info!("Deserializing yaml...");
+
+    for (namespace_opt, resources) in &resources_by_namespace {
+        let output_dir: String = match namespace_opt {
+            Some(namespace) => app_config.output_dir.to_string() + "/" + &namespace.to_string(),
+            None => app_config.output_dir.to_string(),
+        };
+        util::file::create_dir_all(&output_dir);
+        /*
+        for _, resource := range resources {
+            filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
+            if resource.IsSecret() {
+            fileutil.String2File(outDir+"/"+filename+".aes", crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
+            } else {
+            fileutil.String2File(outDir+"/"+filename, resource.SourceYaml)
+            }
+        }*/
+        // if !resource.is_secret() {
+        //     println!("{}: {:?}", resource.qualified_type_name(), resource.parsed_fields);
+        // }
     }
 
     //println!("everything: \n{}", everything_as_string);
