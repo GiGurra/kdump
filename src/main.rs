@@ -1,21 +1,20 @@
 use std::collections::HashMap;
-use log::LevelFilter;
+use itertools::Itertools;
+use crate::config::AppConfig;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
-use simple_logger::SimpleLogger;
 use crate::k8s::ApiResource;
 use crate::util::k8s;
-use itertools::Itertools;
 
 mod util;
 mod config;
 
-
 fn main() {
-    SimpleLogger::new().with_level(LevelFilter::Info).init().unwrap();
+    util::logging::init();
+
+    let app_config: AppConfig = config::AppConfig::from_cli_args();
 
     log::info!("Checking output dir..");
-    let app_config = config::AppConfig::default(); // TODO: Implement cmd line args
     ensure_root_output_dir(&app_config);
 
     log::info!("Checking what k8s types to download...");

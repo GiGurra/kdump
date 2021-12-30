@@ -1,11 +1,30 @@
 use crate::{ApiResourceType, util};
 
+use clap::Parser;
+
+/// Dump all kubernetes resources as yaml files to a dir
+#[derive(Parser, Debug, PartialEq, Clone)]
+#[clap(about, version, author)]
+pub struct CliArgs {
+    /// output directory to create
+    #[clap(short, long)]
+    pub output_dir: String,
+
+    /// if to delete previous output directory (default: false)
+    #[clap(long)]
+    pub delete_previous_dir: bool,
+
+    /// symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
+    #[clap(long)]
+    pub secrets_encryption_key: Option<String>,
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct AppConfig {
     pub output_dir: String,
     pub delete_prev_dir: bool,
     pub excluded_types: Vec<String>,
-    pub encryption_key: Option<String>,
+    pub secrets_encryption_key: Option<String>,
 }
 
 impl Default for AppConfig {
@@ -14,14 +33,23 @@ impl Default for AppConfig {
             output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
             delete_prev_dir: true, // TODO: Change to default false when implementing cli args
             excluded_types: default_resources_excluded(),
-            encryption_key: None,
+            secrets_encryption_key: None,
         };
     }
 }
 
 impl AppConfig {
+    pub fn from_cli_args() -> AppConfig {
+        let mut result = AppConfig::default();
+        let cli_args: CliArgs = CliArgs::parse();
+        result.output_dir = cli_args.output_dir;
+        result.delete_prev_dir = cli_args.delete_previous_dir;
+        result.secrets_encryption_key = cli_args.secrets_encryption_key;
+        return result;
+    }
+
     pub fn include_secrets(&self) -> bool {
-        return self.encryption_key.is_some();
+        return self.secrets_encryption_key.is_some();
     }
 
     pub fn is_type_included(&self, tpe: &util::k8s::ApiResourceType) -> bool {
