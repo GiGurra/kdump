@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use itertools::Itertools;
-use log::log;
 use crate::config::AppConfig;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
@@ -14,19 +13,6 @@ fn main() {
     util::logging::init();
 
     let app_config: AppConfig = config::AppConfig::from_cli_args();
-
-    for hex_key in app_config.secrets_encryption_key {
-
-        let encrypted = util::crypt::encrypt("hejhej", &hex::decode(&hex_key.to_owned()).unwrap());
-        log::info!("nonce_hex_string: {:?}", encrypted.nonce_hex_string);
-        log::info!("encrypted_hex_string: {:?}", encrypted.encrypted_hex_string);
-
-        let decrypted = util::crypt::decrypt(&encrypted, &hex::decode(&hex_key.to_owned()).unwrap());
-        log::info!("decrypted: {}", decrypted);
-
-    }
-
-    std::process::exit(0);
 
     log::info!("Checking output dir..");
     ensure_root_output_dir(&app_config);
@@ -54,11 +40,16 @@ fn main() {
         };
         util::file::create_dir_all(&output_dir);
         for resource in resources {
-            let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
-            let file_path = output_dir.to_string() + "/" + &file_name;
             if resource.is_secret() {
-                log::warn!("Secrets not implemented, ignoring {}", file_path);  // TODO: Implement secrets handling/encryption
+                let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml.aes";
+                let file_path = output_dir.to_string() + "/" + &file_name;
+                let encryption_key = app_config.encryption_key_bytes().unwrap();
+                let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
+                let output_string = encrypted.nonce_hex_string + &encrypted.encrypted_hex_string;
+                std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
             } else {
+                let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
+                let file_path = output_dir.to_string() + "/" + &file_name;
                 std::fs::write(&file_path, &resource.raw_source).expect(&format!("Unable to write file {}", file_path));
             }
         }

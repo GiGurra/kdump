@@ -24,20 +24,17 @@ pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
     let cipher = Aes256Gcm::new_from_slice(key).unwrap();
     let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).unwrap();
 
-    let plaintext = cipher.decrypt(nonce, encrypted_bytes.as_ref())
-        .expect("decryption failure!"); // NOTE: handle this error to avoid panics!
-
     return Encrypted {
         nonce_hex_string: hex::encode(nonce.to_vec()),
         encrypted_hex_string: hex::encode(encrypted_bytes),
     };
 }
 
-pub fn decrypt(input: &Encrypted, key: &[u8]) -> String {
+pub fn _decrypt(input: &Encrypted, key: &[u8]) -> String {
 
     let nonce_bytes = hex::decode(&input.nonce_hex_string).unwrap();
     let nonce = Nonce::<U12>::from_slice(nonce_bytes.as_ref());
-    let mut cipher = Aes256Gcm::new_from_slice(key).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(key).unwrap();
     let decrypted_bytes = cipher.decrypt(nonce, hex::decode(&input.encrypted_hex_string).unwrap().as_ref()).unwrap();
 
     return String::from_utf8(decrypted_bytes).unwrap();

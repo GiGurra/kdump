@@ -64,6 +64,11 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
+
+    pub fn encryption_key_bytes(&self) -> Option<Vec<u8>> {
+        return self.secrets_encryption_key.as_ref().map(|x| hex::decode(x).unwrap());
+    }
+
     pub fn from_cli_args() -> AppConfig {
         let cli_args: CliArgs = CliArgs::parse();
         match cli_args.command {
@@ -97,6 +102,15 @@ impl AppConfig {
                 result.secrets_encryption_key = secrets_encryption_key;
                 result.delete_previous_dir = delete_previous_dir;
                 result.output_dir = output_dir;
+
+                for key_str in &result.secrets_encryption_key {
+                    log::info!("verifying encryption key length and format...");
+                    if key_str.len() != 64 {
+                        panic!("key string was of size {}, must be exactly 64 hex characters", key_str.len());
+                    }
+                    hex::decode(key_str).expect("key was not a valid hex string");
+                }
+
                 return result;
             }
         }
