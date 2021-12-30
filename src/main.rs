@@ -29,7 +29,9 @@ fn main() {
     let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string);
 
     for resource in resources {
-       println!("resource: {}", resource.parsed_fields.qualified_type_name());
+        if !resource.is_secret() {
+            println!("{}: {:?}", resource.qualified_type_name(), resource.parsed_fields);
+        }
     }
 
     //println!("everything: \n{}", everything_as_string);

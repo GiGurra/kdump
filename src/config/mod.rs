@@ -5,12 +5,18 @@ pub struct AppConfig {
     pub output_dir: String,
     pub delete_prev_dir: bool,
     pub excluded_types: Vec<String>,
+    pub encryption_key: Option<String>,
 }
 
 impl AppConfig {
+    pub fn include_secrets(&self) -> bool {
+        return self.encryption_key.is_some();
+    }
+
     pub fn is_type_included(&self, tpe: &util::k8s::ApiResourceType) -> bool {
         return !self.excluded_types.contains(&tpe.name) &&
-            !self.excluded_types.contains(&tpe.qualified_name());
+            !self.excluded_types.contains(&tpe.qualified_name()) &&
+            (!tpe.is_secret() || self.include_secrets());
     }
 
     pub fn types_do_download<'a>(&self, all_resource_type_defs: &'a util::k8s::kubectl::ApiResourceTypes) -> Vec<&'a ApiResourceType> {
@@ -27,6 +33,7 @@ impl Default for AppConfig {
             output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
             delete_prev_dir: true, // TODO: Change to default false when implementing cli args
             excluded_types: default_resources_excluded(),
+            encryption_key: None,
         };
     }
 }

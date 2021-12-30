@@ -1,6 +1,7 @@
 pub mod kubectl;
 
 use serde::Deserialize;
+use serde_yaml::Value;
 use crate::util; // access all modules between util modules
 
 #[derive(Debug, PartialEq, Clone)]
@@ -19,6 +20,20 @@ pub struct ApiResourceType {
     pub api_version: ApiVersion,
 }
 
+impl ApiResourceType {
+    pub fn is_secret(&self) -> bool {
+        return self.name.to_lowercase() == "secret" || self.name.to_lowercase() == "secrets";
+    }
+
+    pub fn qualified_name(&self) -> String {
+        return if self.api_version.name.is_empty() {
+            self.name.clone()
+        } else {
+            self.name.clone() + "." + &self.api_version.name.clone()
+        };
+    }
+}
+
 
 #[derive(PartialEq, Clone)]
 pub struct ApiResource {
@@ -27,6 +42,10 @@ pub struct ApiResource {
 }
 
 
+impl ApiResource {
+    pub fn is_secret(&self) -> bool { return self.parsed_fields.is_secret(); }
+    pub fn qualified_type_name(&self) -> String { return self.parsed_fields.qualified_type_name(); }
+}
 
 #[derive(Debug, PartialEq, Clone)]
 #[derive(Deserialize)]
@@ -38,6 +57,10 @@ pub struct ApiResourceParsedFields {
 }
 
 impl ApiResourceParsedFields {
+    pub fn is_secret(&self) -> bool {
+        return self.kind.to_lowercase() == "secret" || self.kind.to_lowercase() == "secrets";
+    }
+
     pub fn qualified_type_name(&self) -> String {
         let parsed_api_version = parse_api_version(&self.api_version);
         return if parsed_api_version.name.is_empty() {
@@ -53,37 +76,41 @@ impl ApiResourceParsedFields {
 #[serde(rename_all = "camelCase")]
 pub struct ApiResourceParsedFieldsMetaData {
     pub name: String,
-    pub namespace: String,
+    pub namespace: Option<String>,
 }
 
-
-impl ApiResourceType {
-    pub fn qualified_name(&self) -> String {
-        return if self.api_version.name.is_empty() {
-            self.name.clone()
-        } else {
-            self.name.clone() + "." + &self.api_version.name.clone()
-        };
-    }
-}
 
 pub fn parse_api_version(input: &str) -> ApiVersion {
     let api_version_str_parts = util::string::split_to_vec(input, "/", true);
-    return if api_version_str_parts.len() > 1 {
-        ApiVersion {
-            name: api_version_str_parts[0].to_string(),
-            version: api_version_str_parts[1].to_string(),
-        }
-    } else {
-        ApiVersion {
-            name: "".to_string(),
-            version: api_version_str_parts[0].to_string(),
-        }
-    };
+    return
+        if api_version_str_parts.len() > 1 {
+            ApiVersion {
+                name: api_version_str_parts[0].to_string(),
+                version: api_version_str_parts[1].to_string(),
+            }
+        } else {
+            ApiVersion {
+                name: "".to_string(),
+                version: api_version_str_parts[0].to_string(),
+            }
+        };
 }
 
 pub fn parse_resource_list(data: &str) -> Vec<ApiResource> {
-
     let deserialized_map: serde_yaml::Value = serde_yaml::from_str(&data).unwrap();
 
+    let root_object = deserialized_map.as_mapping().unwrap();
+
+    let item_list: &Vec<Value> = root_object.get(&Value::from("items")).unwrap().as_sequence().unwrap();
+
+    return item_list.iter().map(parse_resource).collect::<Vec<ApiResource>>();
+}
+
+pub fn parse_resource(data: &Value) -> ApiResource {
+    let fields: ApiResourceParsedFields = serde_yaml::from_value::<ApiResourceParsedFields>(data.to_owned()).unwrap();
+
+    ApiResource {
+        raw_source: serde_yaml::to_string(data).unwrap(),
+        parsed_fields: fields,
+    }
 }
