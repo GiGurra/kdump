@@ -1,11 +1,10 @@
 use crate::{ApiResourceType, util};
 
-use clap::Parser;
-use clap::Subcommand;
+use clap::{AppSettings, Parser, Subcommand};
 
 /// Dump all kubernetes resources as yaml files to a dir
 #[derive(Parser, Debug, PartialEq, Clone)]
-#[clap(about, version, author)]
+#[clap(about, version, author, setting(AppSettings::SubcommandRequired))]
 pub struct CliArgs {
     #[clap(subcommand)]
     command: Command,
@@ -13,12 +12,13 @@ pub struct CliArgs {
 
 /// Doc comment
 #[derive(Subcommand, Debug, PartialEq, Clone)]
-#[clap()]
+#[clap(setting(AppSettings::DeriveDisplayOrder | AppSettings::DisableHelpSubcommand))]
 enum Command {
-    /// execute download
-    Run {
+    /// Normal usage. Download all resources
+    #[clap(setting(AppSettings::DeriveDisplayOrder))]
+    Download {
         /// REQUIRED: output directory to create
-        #[clap(short, long)]
+        #[clap(short, long, required=true)]
         output_dir: String,
 
         /// if to delete previous output directory (default: false)
@@ -26,7 +26,7 @@ enum Command {
         delete_previous_dir: bool,
 
         /// symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
-        #[clap(long)]
+        #[clap(long, required=false)]
         secrets_encryption_key: Option<String>,
 
         /// disable default excluded types
@@ -34,11 +34,11 @@ enum Command {
         no_default_excluded_types: bool,
 
         /// add additional excluded types
-        #[clap(long)]
+        #[clap(long, required=false)]
         excluded_types: Vec<String>,
     },
 
-    /// don't download resourced - instead show default excluded types
+    /// Don't download resources - instead show default excluded types
     DefaultExcludedTypes,
 }
 
@@ -71,7 +71,7 @@ impl AppConfig {
                 }
                 std::process::exit(0);
             }
-            Command::Run {
+            Command::Download {
                 output_dir,
                 delete_previous_dir,
                 secrets_encryption_key,
