@@ -34,28 +34,22 @@ fn main() {
 
     log::info!("Deserializing yaml...");
 
-    for (namespace_opt, resources) in &resources_by_namespace {
+    for (namespace_opt, resources) in resources_by_namespace {
         let output_dir: String = match namespace_opt {
             Some(namespace) => app_config.output_dir.to_string() + "/" + &namespace.to_string(),
             None => app_config.output_dir.to_string(),
         };
         util::file::create_dir_all(&output_dir);
-        /*
-        for _, resource := range resources {
-            filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
-            if resource.IsSecret() {
-            fileutil.String2File(outDir+"/"+filename+".aes", crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
+        for resource in resources {
+            let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
+            let file_path = output_dir.to_string() + "/" + &file_name;
+            if resource.is_secret() {
+                log::warn!("Secrets not implemented, ignoring {}", file_path);
             } else {
-            fileutil.String2File(outDir+"/"+filename, resource.SourceYaml)
+                std::fs::write(&file_path, &resource.raw_source).expect(&format!("Unable to write file {}", file_path));
             }
-        }*/
-        // if !resource.is_secret() {
-        //     println!("{}: {:?}", resource.qualified_type_name(), resource.parsed_fields);
-        // }
+        }
     }
-
-    //println!("everything: \n{}", everything_as_string);
-
 
     log::info!("DONE!");
 }
