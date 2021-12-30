@@ -1,51 +1,94 @@
 use crate::{ApiResourceType, util};
 
 use clap::Parser;
+use clap::Subcommand;
 
 /// Dump all kubernetes resources as yaml files to a dir
 #[derive(Parser, Debug, PartialEq, Clone)]
 #[clap(about, version, author)]
 pub struct CliArgs {
-    /// output directory to create
-    #[clap(short, long)]
-    pub output_dir: String,
-
-    /// if to delete previous output directory (default: false)
-    #[clap(long)]
-    pub delete_previous_dir: bool,
-
-    /// symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
-    #[clap(long)]
-    pub secrets_encryption_key: Option<String>,
+    #[clap(subcommand)]
+    command: Command,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+/// Doc comment
+#[derive(Subcommand, Debug, PartialEq, Clone)]
+#[clap()]
+enum Command {
+    /// execute download
+    Run {
+        /// REQUIRED: output directory to create
+        #[clap(short, long)]
+        output_dir: String,
+
+        /// if to delete previous output directory (default: false)
+        #[clap(long)]
+        delete_previous_dir: bool,
+
+        /// symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
+        #[clap(long)]
+        secrets_encryption_key: Option<String>,
+
+        /// disable default excluded types
+        #[clap(long)]
+        no_default_excluded_types: bool,
+
+        /// add additional excluded types
+        #[clap(long)]
+        excluded_types: Vec<String>,
+    },
+
+    /// don't download resourced - instead show default excluded types
+    DefaultExcludedTypes,
+}
+
 pub struct AppConfig {
     pub output_dir: String,
-    pub delete_prev_dir: bool,
-    pub excluded_types: Vec<String>,
+    pub delete_previous_dir: bool,
     pub secrets_encryption_key: Option<String>,
+    pub excluded_types: Vec<String>,
 }
 
 impl Default for AppConfig {
     fn default() -> Self {
         return AppConfig {
-            output_dir: String::from("test"),  // TODO: Change to default empty when implementing cli args
-            delete_prev_dir: true, // TODO: Change to default false when implementing cli args
-            excluded_types: default_resources_excluded(),
+            output_dir: "test".to_string(),
+            delete_previous_dir: false,
             secrets_encryption_key: None,
+            excluded_types: default_resources_excluded(),
         };
     }
 }
 
 impl AppConfig {
     pub fn from_cli_args() -> AppConfig {
-        let mut result = AppConfig::default();
         let cli_args: CliArgs = CliArgs::parse();
-        result.output_dir = cli_args.output_dir;
-        result.delete_prev_dir = cli_args.delete_previous_dir;
-        result.secrets_encryption_key = cli_args.secrets_encryption_key;
-        return result;
+        match cli_args.command {
+            Command::DefaultExcludedTypes => {
+                println!("Default excluded types:");
+                for tpe in default_resources_excluded() {
+                    println!(" - {}", tpe);
+                }
+                std::process::exit(0);
+            }
+            Command::Run {
+                output_dir,
+                delete_previous_dir,
+                secrets_encryption_key,
+                no_default_excluded_types,
+                excluded_types,
+            } => {
+                let mut result = AppConfig::default();
+                if no_default_excluded_types {
+                    result.excluded_types.clear();
+                }
+                result.excluded_types.append(&mut excluded_types.to_owned());
+                result.secrets_encryption_key = secrets_encryption_key;
+                result.delete_previous_dir = delete_previous_dir;
+                result.output_dir = output_dir;
+                return result;
+            }
+        }
     }
 
     pub fn include_secrets(&self) -> bool {

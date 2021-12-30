@@ -54,7 +54,7 @@ fn main() {
 }
 
 fn ensure_root_output_dir(app_config: &config::AppConfig) {
-    if app_config.delete_prev_dir {
+    if app_config.delete_previous_dir {
         util::file::delete_all_if_exists(&app_config.output_dir);
     }
 
