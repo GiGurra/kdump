@@ -1,5 +1,3 @@
-use crate::util::k8s::ApiResourceType;
-
 mod util;
 
 struct AppConfig {
@@ -24,9 +22,9 @@ fn main() {
     println!("Downloading all resources from current context");
 
 
-    let resources: Vec<ApiResourceType> = util::k8s::kubectl::api_resource_types();
+    let resources = util::k8s::kubectl::api_resource_types();
 
-    for resource in &resources {
+    for resource in &resources.all {
         println!("resource: {:?}", resource);
     }
 }

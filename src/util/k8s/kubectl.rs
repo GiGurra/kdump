@@ -4,7 +4,44 @@ use std::collections::HashMap;
 use crate::util::k8s::*;
 use crate::util;
 
-pub fn api_resource_types() -> Vec<super::ApiResourceType> {
+pub struct ApiResourceTypes<'a> {
+    pub all: Vec<ApiResourceType>,
+    accessible: AccessibleApiResourceTypes<'a>,
+}
+
+impl ApiResourceTypes <'_> {
+    pub fn default<'a>() -> ApiResourceTypes<'a> {
+        ApiResourceTypes {
+            all: vec![],
+            accessible: AccessibleApiResourceTypes::default(),
+        }
+    }
+
+    pub fn from<'a>(all_values: Vec<ApiResourceType>) -> ApiResourceTypes<'a> {
+        ApiResourceTypes {
+            all: all_values,
+            accessible: AccessibleApiResourceTypes::default(),
+        }
+    }
+}
+
+pub struct AccessibleApiResourceTypes<'a> {
+    all: Vec<&'a ApiResourceType>,
+    namespaced: Vec<&'a ApiResourceType>,
+    global: Vec<&'a ApiResourceType>,
+}
+
+impl AccessibleApiResourceTypes <'_> {
+    pub fn default<'a>() -> AccessibleApiResourceTypes<'a> {
+        AccessibleApiResourceTypes {
+            all: vec![],
+            namespaced: vec![],
+            global: vec![],
+        }
+    }
+}
+
+pub fn api_resource_types<'a>() -> ApiResourceTypes<'a> {
     let result = util::shell::run_command(
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );
@@ -13,12 +50,13 @@ pub fn api_resource_types() -> Vec<super::ApiResourceType> {
 
     let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
 
-    let result = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
+    let list = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 
-    return result;
+    return ApiResourceTypes::from(list);
 }
 
 fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
+
     return ApiResourceType {
         name: String::from(&map["NAME"]),
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
