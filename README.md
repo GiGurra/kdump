@@ -13,7 +13,7 @@ NOTE: also dumps secrets, if you explicitly tell it to do so by providing an enc
 
 Now written in rust.
 
-###Usage:
+### Usage:
 ```
 kdump --help                                
 kdump 0.1.0
@@ -58,7 +58,7 @@ OPTIONS:
     -h, --help
             Print help information
 ```
-###Examples:
+### Examples:
 ```
 kdump download --output-dir test --delete-previous-dir --excluded-types deployments.apps --excluded-
 types services
