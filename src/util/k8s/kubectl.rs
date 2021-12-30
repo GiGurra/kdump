@@ -6,7 +6,7 @@ use crate::util;
 
 pub struct ApiResourceTypes<'a> {
     pub all: Vec<ApiResourceType>,
-    accessible: AccessibleApiResourceTypes<'a>,
+    pub accessible: AccessibleApiResourceTypes<'a>,
 }
 
 impl ApiResourceTypes<'_> {
@@ -26,9 +26,9 @@ impl ApiResourceTypes<'_> {
 }
 
 pub struct AccessibleApiResourceTypes<'a> {
-    all: Vec<&'a ApiResourceType>,
-    namespaced: Vec<&'a ApiResourceType>,
-    global: Vec<&'a ApiResourceType>,
+    pub all: Vec<&'a ApiResourceType>,
+    pub namespaced: Vec<&'a ApiResourceType>,
+    pub global: Vec<&'a ApiResourceType>,
 }
 
 impl AccessibleApiResourceTypes<'_> {

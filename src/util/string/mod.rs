@@ -4,8 +4,8 @@ use regex::Regex; // 1.1.8
 
 #[derive(Debug)]
 pub struct StdOutTableColumn {
-    name: String,
-    byte_offset: usize,
+    pub name: String,
+    pub byte_offset: usize,
 }
 
 pub fn split_to_vec(input: &str, pat: &str, filter_empty: bool) -> Vec<String> {

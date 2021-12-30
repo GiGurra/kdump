@@ -1,8 +1,8 @@
 mod util;
 
-struct AppConfig {
-    output_dir: String,
-    delete_prev_dir: bool,
+pub struct AppConfig {
+    pub output_dir: String,
+    pub delete_prev_dir: bool,
 }
 
 impl Default for AppConfig {
