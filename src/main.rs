@@ -40,18 +40,26 @@ fn main() {
         };
         util::file::create_dir_all(&output_dir);
         for resource in resources {
-            if resource.is_secret() {
-                let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml.aes";
-                let file_path = output_dir.to_string() + "/" + &file_name;
-                let encryption_key = app_config.encryption_key_bytes().unwrap();
-                let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
-                let output_string = encrypted.nonce_hex_string + &encrypted.encrypted_hex_string;
-                std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
-            } else {
-                let file_name = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
-                let file_path = output_dir.to_string() + "/" + &file_name;
-                std::fs::write(&file_path, &resource.raw_source).expect(&format!("Unable to write file {}", file_path));
-            }
+            let file_name: String = {
+                let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
+                if resource.is_secret() {
+                    String::from(file_name_base + ".aes")
+                } else {
+                    file_name_base
+                }
+            };
+            let file_path = output_dir.to_string() + "/" + &file_name;
+
+            let output_string: String =
+                if resource.is_secret() {
+                    let encryption_key = app_config.encryption_key_bytes().unwrap();
+                    let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
+                    String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string)
+                } else {
+                    String::from(&resource.raw_source)
+                };
+
+            std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
         }
     }
 
