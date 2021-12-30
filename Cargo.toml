@@ -13,3 +13,6 @@ log = { version = "0.4", features = ["std", "serde"] }
 simple_logger = "1.16.0"
 itertools = "0.10.3"
 clap = { version = "3.0.0-rc.9", features = ["derive"] }
+aes-gcm = "0.9.4"
+rand = "0.8.4"
+rand_chacha = "0.3.1"
