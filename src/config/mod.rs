@@ -94,7 +94,7 @@ impl AppConfig {
                 if no_default_excluded_types {
                     result.excluded_types.clear();
                 }
-                result.excluded_types.append(&mut excluded_types.to_owned());
+                result.excluded_types.extend_from_slice(&excluded_types);
                 result.secrets_encryption_key = secrets_encryption_key.map(|x| parse_encryption_key(&x));
                 result.delete_previous_dir = delete_previous_dir;
                 result.output_dir = output_dir;
