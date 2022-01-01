@@ -30,16 +30,16 @@ pub struct AccessibleApiResourceTypes {
 impl AccessibleApiResourceTypes {
     pub fn from(all_values: &[ApiResourceType]) -> AccessibleApiResourceTypes {
         let accessible_resources =
-            all_values.clone()
+            all_values
                 .iter()
                 .filter(|x| x.verbs.contains(&"get".to_string()))
-                .map(|x| x.clone())
+                .cloned()
                 .collect::<Vec<ApiResourceType>>();
 
         AccessibleApiResourceTypes {
             all: accessible_resources.to_vec(),
-            namespaced: accessible_resources.iter().filter(|x| x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
-            global: accessible_resources.iter().filter(|x| !x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
+            namespaced: accessible_resources.iter().filter(|x| x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),
+            global: accessible_resources.iter().filter(|x| !x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),
         }
     }
 }
@@ -50,7 +50,7 @@ pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
     );
 
     result.map(|command_result_output| {
-        let lines: Vec<String> = command_result_output.lines().map(|x| String::from(x)).collect::<Vec<String>>();
+        let lines: Vec<String> = command_result_output.lines().map(String::from).collect::<Vec<String>>();
         let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
         let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 

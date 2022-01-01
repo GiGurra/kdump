@@ -67,7 +67,7 @@ impl ApiResourceParsedFields {
         if parsed_api_version.name.is_empty() {
             self.kind.to_lowercase()
         } else {
-            self.kind.to_lowercase() + "." + &parsed_api_version.name.clone()
+            self.kind.to_lowercase() + "." + &parsed_api_version.name
         }
     }
 }
