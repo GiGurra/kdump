@@ -12,8 +12,8 @@ pub struct ApiResourceTypes {
 }
 
 impl ApiResourceTypes {
-    pub fn from(all_values: &[ApiResourceType]) -> ApiResourceTypes {
-        ApiResourceTypes {
+    pub fn from(all_values: &[ApiResourceType]) -> Self {
+        Self {
             all: Vec::from(all_values),
             accessible: AccessibleApiResourceTypes::from(all_values),
         }
@@ -28,7 +28,7 @@ pub struct AccessibleApiResourceTypes {
 }
 
 impl AccessibleApiResourceTypes {
-    pub fn from(all_values: &[ApiResourceType]) -> AccessibleApiResourceTypes {
+    pub fn from(all_values: &[ApiResourceType]) -> Self {
         let accessible_resources =
             all_values
                 .iter()
@@ -36,7 +36,7 @@ impl AccessibleApiResourceTypes {
                 .cloned()
                 .collect::<Vec<ApiResourceType>>();
 
-        AccessibleApiResourceTypes {
+        Self {
             all: accessible_resources.clone(),
             namespaced: accessible_resources.iter().filter(|x| x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),
             global: accessible_resources.iter().filter(|x| !x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),

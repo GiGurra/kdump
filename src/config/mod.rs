@@ -54,7 +54,7 @@ pub struct AppCfg {
 
 impl Default for AppCfg {
     fn default() -> Self {
-        AppCfg {
+        Self {
             output_dir: "test".to_string(),
             delete_previous_dir: false,
             secrets_encryption_key: None,
@@ -64,7 +64,7 @@ impl Default for AppCfg {
 }
 
 impl AppCfg {
-    pub fn from_cli_args() -> AppCfg {
+    pub fn from_cli_args() -> Self {
         let cli_args: CliArgs = CliArgs::parse();
         match cli_args.command {
             Command::DefaultExcludedTypes => {
@@ -90,7 +90,7 @@ impl AppCfg {
                 no_default_excluded_types,
                 excluded_types,
             } => {
-                let mut result = AppCfg::default();
+                let mut result = Self::default();
                 if no_default_excluded_types {
                     result.excluded_types.clear();
                 }
@@ -104,7 +104,7 @@ impl AppCfg {
         }
     }
 
-    pub fn include_secrets(&self) -> bool {
+    pub const fn include_secrets(&self) -> bool {
         self.secrets_encryption_key.is_some()
     }
 
