@@ -2,6 +2,8 @@
 name = "kdump"
 version = "0.1.0"
 edition = "2021"
+description = "Dump all kubernetes resources as yaml files to a dir"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
