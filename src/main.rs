@@ -1,14 +1,16 @@
-mod config;
-mod k8s;
-
 use std::collections::HashMap;
+
 use gigurra_rust_util as util;
+use util::crypt;
 use util::itertools::Itertools;
 use util::log;
-use util::crypt;
+
 use config::AppCfg;
 use k8s::{ApiResource, ApiResourceType};
 use k8s::kubectl::ApiResourceTypes;
+
+mod config;
+mod k8s;
 
 fn main() {
     util::logging::init();
