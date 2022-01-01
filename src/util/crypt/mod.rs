@@ -15,7 +15,7 @@ pub struct Encrypted {
 
 pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
 
-    let mut rng = ChaCha20Rng::from_entropy();
+    let mut rng: ChaCha20Rng = ChaCha20Rng::from_entropy();
 
     let nonce_bytes_as_u32: Vec<u32> = (0..3).map(|_| rng.next_u32()).collect();
     let nonce_bytes: Vec<u8> = nonce_bytes_as_u32.iter().flat_map(|x| x.to_be_bytes()).collect();
