@@ -30,8 +30,7 @@ pub fn parse_stdout_table(lines: &[String]) -> Vec<HashMap<String, String>> {
     let data_lines = Vec::from(&lines[1..]);
     let headings_offsets = find_headings_offsets(headings_line);
     let headings = find_headings(headings_line, &headings_offsets);
-    let line_values = find_line_values(&data_lines, &headings);
-    line_values
+    find_line_values(&data_lines, &headings)
 }
 
 fn find_line_values(data_lines: &[String], headings: &[StdOutTableColumn]) -> Vec<HashMap<String, String>> {
@@ -54,7 +53,7 @@ fn find_line_values(data_lines: &[String], headings: &[StdOutTableColumn]) -> Ve
     line_values
 }
 
-fn find_headings_offsets(headings_line: &String) -> Vec<usize> {
+fn find_headings_offsets(headings_line: &str) -> Vec<usize> {
     let mut begin_offsets = Vec::<usize>::new();
     let mut prev_is_space = true;
 
@@ -68,7 +67,7 @@ fn find_headings_offsets(headings_line: &String) -> Vec<usize> {
     begin_offsets
 }
 
-fn find_headings(headings_line: &String, headings_offsets: &[usize]) -> Vec<StdOutTableColumn> {
+fn find_headings(headings_line: &str, headings_offsets: &[usize]) -> Vec<StdOutTableColumn> {
     let mut headings = Vec::<StdOutTableColumn>::new();
     for (vec_index, byte_offset) in headings_offsets.iter().enumerate() {
         let end_offset: usize =

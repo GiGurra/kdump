@@ -65,9 +65,9 @@ impl ApiResourceParsedFields {
     pub fn qualified_type_name(&self) -> String {
         let parsed_api_version = parse_api_version(&self.api_version);
         if parsed_api_version.name.is_empty() {
-            self.kind.to_lowercase().clone()
+            self.kind.to_lowercase()
         } else {
-            self.kind.to_lowercase().clone() + "." + &parsed_api_version.name.clone()
+            self.kind.to_lowercase() + "." + &parsed_api_version.name.clone()
         }
     }
 }
@@ -91,22 +91,22 @@ pub struct ApiResourceList {
 
 pub fn parse_api_version(input: &str) -> ApiVersion {
     let api_version_str_parts = util::string::split_to_vec(input, "/", true);
-    return
-        if api_version_str_parts.len() > 1 {
-            ApiVersion {
-                name: api_version_str_parts[0].to_string(),
-                version: api_version_str_parts[1].to_string(),
-            }
-        } else {
-            ApiVersion {
-                name: "".to_string(),
-                version: api_version_str_parts[0].to_string(),
-            }
-        };
+
+    if api_version_str_parts.len() > 1 {
+        ApiVersion {
+            name: api_version_str_parts[0].to_string(),
+            version: api_version_str_parts[1].to_string(),
+        }
+    } else {
+        ApiVersion {
+            name: "".to_string(),
+            version: api_version_str_parts[0].to_string(),
+        }
+    }
 }
 
 pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> serde_yaml::Result<Vec<ApiResource>> {
-    let deserialized_resource_list: ApiResourceList = serde_yaml::from_str(&data)?;
+    let deserialized_resource_list: ApiResourceList = serde_yaml::from_str(data)?;
 
     let item_list = &deserialized_resource_list.items;
 

@@ -10,10 +10,10 @@ pub struct CommandDescription {
 
 #[derive(Debug)]
 pub enum RunCommandError {
-    RunCommandFailed(CommandDescription, std::io::Error),
-    RunCommandInvalidOutput(CommandDescription, FromUtf8Error),
-    RunCommandNoExitCode(CommandDescription),
-    RunCommandNonZeroExitCode(CommandDescription, i32, Result<String, FromUtf8Error>),
+    Failed(CommandDescription, std::io::Error),
+    InvalidOutput(CommandDescription, FromUtf8Error),
+    NoExitCode(CommandDescription),
+    NonZeroExitCode(CommandDescription, i32, Result<String, FromUtf8Error>),
 }
 
 fn get_description(cmd: &std::process::Command) -> CommandDescription {
@@ -25,12 +25,12 @@ fn get_description(cmd: &std::process::Command) -> CommandDescription {
 
 pub fn run_command(cmd: &mut std::process::Command) -> Result<String, RunCommandError> {
     let output: Output =
-        cmd.output().map_err(|err| RunCommandFailed(get_description(cmd), err))?;
+        cmd.output().map_err(|err| Failed(get_description(cmd), err))?;
 
     match output.status.code() {
-        None => Err(RunCommandNoExitCode(get_description(cmd))),
+        None => Err(NoExitCode(get_description(cmd))),
         Some(0) => String::from_utf8(output.stdout)
-            .map_err(|err| RunCommandInvalidOutput(get_description(cmd), err.clone())),
-        Some(status_code) => Err(RunCommandNonZeroExitCode(get_description(cmd), status_code, String::from_utf8(output.stderr))),
+            .map_err(|err| InvalidOutput(get_description(cmd), err)),
+        Some(status_code) => Err(NonZeroExitCode(get_description(cmd), status_code, String::from_utf8(output.stderr))),
     }
 }
