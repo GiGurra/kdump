@@ -38,7 +38,7 @@ enum Command {
         excluded_types: Vec<String>,
     },
 
-    /// List resource types available for download in the cluster
+    /// Don't download resources - instead show resource types available for download in the cluster
     ClusterResourceTypes,
 
     /// Don't download resources - instead show default excluded types
