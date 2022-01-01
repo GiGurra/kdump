@@ -75,10 +75,9 @@ fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
     ApiResourceType {
         name: String::from(&map["NAME"]),
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
-        namespaced: bool::from_str(&map["NAMESPACED"]).expect(&format!("missing or non-bool 'NAMESPACED' in {:?}", map)),
+        namespaced: bool::from_str(&map["NAMESPACED"]).expect("non-bool 'NAMESPACED' in map"),
         kind: String::from(&map["KIND"]),
-        verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+")
-            .expect(&format!("missing or non-string 'KIND' in {:?}", map)), true),
+        verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+").expect("BUG: invalid regex to split VERBS"), true),
         api_version: parse_api_version(&map["APIVERSION"]),
     }
 }

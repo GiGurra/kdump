@@ -38,8 +38,8 @@ fn main() {
         let output_dir: String = make_resource_output_dir(&app_config, &namespace_opt).expect("Unable to create output dir");
         for resource in resources {
             let file_path = make_resource_file_path(&output_dir, resource).expect("unable to make resource file path");
-            let output_string = make_resource_file_contents(&app_config, resource).expect(&format!("unable to make resource file contents for: {}", file_path));
-            std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
+            let output_string = make_resource_file_contents(&app_config, resource).unwrap_or_else(|err| panic!("unable to make resource file contents for: {}, due to {:?}", file_path, err));
+            std::fs::write(&file_path, &output_string).unwrap_or_else(|err| panic!("Unable to write file {}, due to {:?}", file_path, err));
         }
     }
 
@@ -83,7 +83,7 @@ fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::A
 fn check_root_output_dir(app_config: &config::AppConfig) {
     if app_config.delete_previous_dir {
         util::file::delete_all_if_exists(&app_config.output_dir)
-            .expect(&format!("unable to delete output dir: {}", &app_config.output_dir));
+            .unwrap_or_else(|err| panic!("unable to delete output dir: {}, due to {:?}", &app_config.output_dir, err));
     }
 
     if util::file::path_exists(&app_config.output_dir) {
@@ -91,5 +91,5 @@ fn check_root_output_dir(app_config: &config::AppConfig) {
     }
 
     util::file::create_dir_all(&app_config.output_dir)
-        .expect(&format!("unable to create output dir: {}", &app_config.output_dir));
+        .unwrap_or_else(|err| panic!("unable to create output dir: {}, due to {:?}", &app_config.output_dir, err));
 }
