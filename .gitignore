@@ -70,4 +70,8 @@ kdump
 kdump.exe
 kdump.bin
 
+rkdump
+rkdump.exe
+rkdump.bin
+
 target/
