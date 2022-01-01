@@ -1,9 +1,11 @@
 [package]
-name = "kdump"
+name = "rkdump"
 version = "0.1.0"
 edition = "2021"
 description = "Dump all kubernetes resources as yaml files to a dir"
 license-file = "LICENSE"
+authors = ["Johan Kjölhede <gigurra@gmail.com>"]
+homepage = "https://github.com/gigurra/kdump/tree/use-rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

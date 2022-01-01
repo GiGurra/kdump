@@ -1,4 +1,4 @@
-# kdump
+# rkdump (rust kdump)
 
 Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to files in yaml form.
 
@@ -15,12 +15,12 @@ Now written in rust.
 
 ### Usage:
 ```
-kdump --help                                
-kdump 0.1.0
+rkdump --help                                
+rkdump 0.1.0
 Dump all kubernetes resources as yaml files to a dir
 
 USAGE:
-    kdump <SUBCOMMAND>
+    rkdump <SUBCOMMAND>
 
 OPTIONS:
     -h, --help       Print help information
@@ -32,12 +32,12 @@ SUBCOMMANDS:
     default-excluded-types    Don't download resources - instead show default excluded types
 ```
 ```
-kdump download --help
-kdump-download 
+rkdump download --help
+rkdump-download 
 Normal usage. Download all resources
 
 USAGE:
-    kdump download [OPTIONS] --output-dir <OUTPUT_DIR>
+    rkdump download [OPTIONS] --output-dir <OUTPUT_DIR>
 
 OPTIONS:
     -o, --output-dir <OUTPUT_DIR>
@@ -60,7 +60,7 @@ OPTIONS:
 ```
 ### Examples:
 ```
-kdump download --output-dir test --delete-previous-dir --excluded-types deployments.apps --excluded-
+rkdump download --output-dir test --delete-previous-dir --excluded-types deployments.apps --excluded-
 types services
 2021-12-30 22:10:36,500 INFO [kdump] Checking what k8s types to download...
 2021-12-30 22:10:37,679 INFO [kdump] Downloading all objects...
@@ -69,7 +69,7 @@ types services
 2021-12-30 22:10:47,782 INFO [kdump] DONE!
 ```
 ```
-kdump cluster-resource-types
+rkdump cluster-resource-types
 Cluster types:
  - configmaps
  - challenges.acme.cert-manager.io
@@ -77,7 +77,7 @@ Cluster types:
  ...
 ```
 ```
-kdump default-excluded-types
+rkdump default-excluded-types
 Default excluded types:
  - limitranges
  - podtemplates
