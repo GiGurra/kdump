@@ -1,8 +1,9 @@
 pub mod kubectl;
 
 use serde::Deserialize;
-use serde_yaml::Value;
-use crate::util; // access all modules between util modules
+use serde_yaml::{Mapping, Value};
+use crate::util;
+// access all modules between util modules
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiVersion {
@@ -79,6 +80,14 @@ pub struct ApiResourceParsedFieldsMetaData {
     pub namespace: Option<String>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResourceList {
+    pub api_version: String,
+    pub kind: String,
+    pub items: Vec<serde_yaml::Mapping>,
+}
 
 pub fn parse_api_version(input: &str) -> ApiVersion {
     let api_version_str_parts = util::string::split_to_vec(input, "/", true);
@@ -96,28 +105,29 @@ pub fn parse_api_version(input: &str) -> ApiVersion {
         };
 }
 
-pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> Vec<ApiResource> {
-    let deserialized_map: serde_yaml::Value = serde_yaml::from_str(&data).unwrap();
+pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> serde_yaml::Result<Vec<ApiResource>> {
+    let deserialized_resource_list: ApiResourceList = serde_yaml::from_str(&data)?;
 
-    let root_object = deserialized_map.as_mapping().unwrap();
+    let item_list: &Vec<serde_yaml::Mapping> = &deserialized_resource_list.items;
 
-    let item_list: &Vec<Value> = root_object.get(&Value::from("items")).unwrap().as_sequence().unwrap();
-
-    item_list.iter().map(|x| parse_resource(x, remove_status_fields)).collect::<Vec<ApiResource>>()
+    return item_list.iter()
+        .map(|x| parse_resource(x, remove_status_fields))
+        .collect();
 }
 
-pub fn parse_resource(data: &Value, remove_status_fields: bool) -> ApiResource {
-    let fields: ApiResourceParsedFields = serde_yaml::from_value::<ApiResourceParsedFields>(data.to_owned()).unwrap();
+pub fn parse_resource(data: &Mapping, remove_status_fields: bool) -> serde_yaml::Result<ApiResource> {
+    let upcast = Value::from(data.to_owned());
+    let fields: ApiResourceParsedFields = serde_yaml::from_value(upcast)?;
 
-    let mut data_copy = data.as_mapping().unwrap().clone();
+    let mut data_copy = data.clone();
 
     if remove_status_fields {
         data_copy.remove(&Value::from("status"));
         data_copy.remove(&Value::from("lastRefresh"));
     }
 
-    ApiResource {
-        raw_source: serde_yaml::to_string(&data_copy).unwrap(),
+    return Ok(ApiResource {
+        raw_source: serde_yaml::to_string(&data_copy)?,
         parsed_fields: fields,
-    }
+    });
 }

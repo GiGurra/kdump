@@ -21,8 +21,8 @@ pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
     let nonce_bytes: Vec<u8> = nonce_bytes_as_u32.iter().flat_map(|x| x.to_be_bytes()).collect();
 
     let nonce = Nonce::<U12>::from_slice(&nonce_bytes);
-    let cipher = Aes256Gcm::new_from_slice(key).unwrap();
-    let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(key).expect("could not create AES 256 GCM cipher. Check input key format");
+    let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).expect("BUG: aes 256 gcm cipher failed to encrypt data");
 
     return Encrypted {
         nonce_hex_string: hex::encode(nonce.to_vec()),
@@ -32,10 +32,11 @@ pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
 
 pub fn _decrypt(input: &Encrypted, key: &[u8]) -> String {
 
-    let nonce_bytes = hex::decode(&input.nonce_hex_string).unwrap();
+    let nonce_bytes = hex::decode(&input.nonce_hex_string).expect("nonce provided to crypt::decrypt is not valid hex");
+    let encrypted_bytes = hex::decode(&input.encrypted_hex_string).expect("encrypted data provided to crypt::decrypt is not valid hex");
     let nonce = Nonce::<U12>::from_slice(nonce_bytes.as_ref());
-    let cipher = Aes256Gcm::new_from_slice(key).unwrap();
-    let decrypted_bytes = cipher.decrypt(nonce, hex::decode(&input.encrypted_hex_string).unwrap().as_ref()).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(key).expect("key provided to crypt::decrypt is not a valid aes 256 gcm key");
+    let decrypted_bytes = cipher.decrypt(nonce, encrypted_bytes.as_ref()).expect("BUG: aes 256 gcm cipher failed to decrypt data");
 
-    return String::from_utf8(decrypted_bytes).unwrap();
+    return String::from_utf8(decrypted_bytes).expect("BUG: aes 256 gcm cipher did not produce valid utf-8");
 }

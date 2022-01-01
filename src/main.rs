@@ -28,7 +28,8 @@ fn main() {
 
     log::info!("Deserializing yaml...");
 
-    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true);
+    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true)
+        .expect("could not parse 'everything yaml' from kubectl");
     let resources_by_namespace: HashMap<Option<String>, Vec<&ApiResource>> = resources.iter().into_group_map_by(|a| a.parsed_fields.metadata.namespace.clone());
 
     log::info!("Writing yaml files...");
