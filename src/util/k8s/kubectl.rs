@@ -3,6 +3,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use crate::util::k8s::*;
 use crate::util;
+use crate::util::shell::RunCommandError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiResourceTypes {
@@ -43,21 +44,25 @@ impl AccessibleApiResourceTypes {
     }
 }
 
-pub fn api_resource_types() -> ApiResourceTypes {
+pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
+
     let result = util::shell::run_command(
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );
 
-    let lines: Vec<String> = result.lines().map(|x| String::from(x)).collect::<Vec<String>>();
+    return result.map(|command_result_output| {
 
-    let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
+        let lines: Vec<String> = command_result_output.lines().map(|x| String::from(x)).collect::<Vec<String>>();
 
-    let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
+        let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
 
-    return ApiResourceTypes::from(list);
+        let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
+
+        return ApiResourceTypes::from(list);
+    });
 }
 
-pub fn download_everything(types_to_download: &Vec<&ApiResourceType>) -> String {
+pub fn download_everything(types_to_download: &Vec<&ApiResourceType>) -> Result<String, RunCommandError> {
     let qualified_names: Vec<String> = types_to_download.iter().map(|x| x.qualified_name()).collect();
     let qualified_names_joined: String = qualified_names.join(",");
     return util::shell::run_command(

@@ -75,7 +75,8 @@ impl AppConfig {
                 std::process::exit(0);
             }
             Command::ClusterResourceTypes => {
-                let types = util::k8s::kubectl::api_resource_types();
+                let types = util::k8s::kubectl::api_resource_types()
+                    .expect("Failed to download k8s resource types");
                 println!("Cluster types:");
                 for tpe in types.accessible.all {
                     println!(" - {}", tpe.qualified_name());

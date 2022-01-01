@@ -19,17 +19,17 @@ fn main() {
 
     log::info!("Checking what k8s types to download...");
 
-    let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types();
+    let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types().expect("Failed to download k8s resource types");
     let resource_type_defs_to_download: Vec<&ApiResourceType> = app_config.types_do_download(&all_resource_type_defs);
 
     log::info!("Downloading all objects...");
 
-    let everything_as_string = util::k8s::kubectl::download_everything(&resource_type_defs_to_download);
+    let everything_as_string: String = util::k8s::kubectl::download_everything(&resource_type_defs_to_download)
+        .expect("Failed to download all k8s resources");
 
     log::info!("Deserializing yaml...");
 
-    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true)
-        .expect("could not parse 'everything yaml' from kubectl");
+    let resources: Vec<ApiResource> = k8s::parse_resource_list(&everything_as_string, true).expect("could not parse 'everything yaml' from kubectl");
     let resources_by_namespace: HashMap<Option<String>, Vec<&ApiResource>> = resources.iter().into_group_map_by(|a| a.parsed_fields.metadata.namespace.clone());
 
     log::info!("Writing yaml files...");
