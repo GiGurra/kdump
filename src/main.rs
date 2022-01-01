@@ -15,7 +15,7 @@ fn main() {
     let app_config: AppConfig = config::AppConfig::from_cli_args();
 
     log::info!("Checking app configuration..");
-    make_root_output_dir(&app_config);
+    check_root_output_dir(&app_config);
 
     log::info!("Checking what k8s types to download...");
 
@@ -35,9 +35,9 @@ fn main() {
     log::info!("Writing yaml files...");
 
     for (namespace_opt, resources) in resources_by_namespace {
-        let output_dir: String = make_resource_output_dir(&app_config, &namespace_opt);
+        let output_dir: String = make_resource_output_dir(&app_config, &namespace_opt).expect("Unable to create output dir");
         for resource in resources {
-            let file_path = make_resource_file_path(&output_dir, resource);
+            let file_path = make_resource_file_path(&output_dir, resource).expect("unable to make resource file path");
             let output_string = make_resource_file_contents(&app_config, resource).expect(&format!("unable to make resource file contents for: {}", file_path));
             std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
         }
@@ -46,20 +46,20 @@ fn main() {
     log::info!("DONE!");
 }
 
-fn make_resource_output_dir(app_config: &config::AppConfig, namespace_opt: &Option<String>) -> String {
+fn make_resource_output_dir(app_config: &config::AppConfig, namespace_opt: &Option<String>) -> std::io::Result<String> {
     let output_dir: String = match namespace_opt {
         Some(namespace) => app_config.output_dir.to_string() + "/" + &namespace.to_string(),
         None => app_config.output_dir.to_string(),
     };
 
-    util::file::create_dir_all(&output_dir);
+    util::file::create_dir_all(&output_dir)?;
 
-    return output_dir;
+    return Ok(output_dir);
 }
 
-fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> String {
+fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> std::io::Result<String> {
     let file_name: String = {
-        let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
+        let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name)? + "." + &util::file::sanitize(&resource.qualified_type_name())? + ".yaml";
         if resource.is_secret() {
             String::from(file_name_base + ".aes")
         } else {
@@ -67,7 +67,7 @@ fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> Str
         }
     };
 
-    return output_dir.to_string() + "/" + &file_name;
+    return Ok(output_dir.to_string() + "/" + &file_name);
 }
 
 fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::ApiResource) -> Result<String, crypt::EncryptError> {
@@ -80,14 +80,16 @@ fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::A
     };
 }
 
-fn make_root_output_dir(app_config: &config::AppConfig) {
+fn check_root_output_dir(app_config: &config::AppConfig) {
     if app_config.delete_previous_dir {
-        util::file::delete_all_if_exists(&app_config.output_dir);
+        util::file::delete_all_if_exists(&app_config.output_dir)
+            .expect(&format!("unable to delete output dir: {}", &app_config.output_dir));
     }
 
     if util::file::path_exists(&app_config.output_dir) {
         panic!("output path exists!: {}", app_config.output_dir);
     }
 
-    util::file::create_dir_all(&app_config.output_dir);
+    util::file::create_dir_all(&app_config.output_dir)
+        .expect(&format!("unable to create output dir: {}", &app_config.output_dir));
 }
