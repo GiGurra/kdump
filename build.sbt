@@ -6,4 +6,12 @@ scalaVersion := "3.1.0"
 
 libraryDependencies ++= dependencies.prod
 
-enablePlugins(PackPlugin)
+//enablePlugins(PackPlugin)
+
+enablePlugins(JlinkPlugin)
+
+jlinkIgnoreMissingDependency := JlinkIgnore.everything
+
+jlinkModules := {
+  jlinkModules.value :+ "jdk.unsupported"
+}
