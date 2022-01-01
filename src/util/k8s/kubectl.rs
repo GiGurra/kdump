@@ -28,7 +28,7 @@ pub struct AccessibleApiResourceTypes {
 }
 
 impl AccessibleApiResourceTypes {
-    pub fn from(all_values: &Vec<ApiResourceType>) -> AccessibleApiResourceTypes {
+    pub fn from(all_values: &[ApiResourceType]) -> AccessibleApiResourceTypes {
         let accessible_resources =
             all_values.clone()
                 .iter()
@@ -58,7 +58,7 @@ pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
     })
 }
 
-pub fn download_everything(types_to_download: &Vec<&ApiResourceType>) -> Result<String, RunCommandError> {
+pub fn download_everything(types_to_download: &[&ApiResourceType]) -> Result<String, RunCommandError> {
     let qualified_names: Vec<String> = types_to_download.iter().map(|x| x.qualified_name()).collect();
     let qualified_names_joined: String = qualified_names.join(",");
     util::shell::run_command(

@@ -108,7 +108,7 @@ pub fn parse_api_version(input: &str) -> ApiVersion {
 pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> serde_yaml::Result<Vec<ApiResource>> {
     let deserialized_resource_list: ApiResourceList = serde_yaml::from_str(&data)?;
 
-    let item_list: &Vec<serde_yaml::Mapping> = &deserialized_resource_list.items;
+    let item_list = &deserialized_resource_list.items;
 
     item_list.iter()
         .map(|x| parse_resource(x, remove_status_fields))
