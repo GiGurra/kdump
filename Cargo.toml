@@ -1,6 +1,6 @@
 [package]
 name = "rkdump"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "Dump all kubernetes resources as yaml files to a dir"
 license-file = "LICENSE"

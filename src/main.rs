@@ -4,7 +4,7 @@ use crate::config::AppConfig;
 use crate::util::k8s::ApiResourceType;
 use crate::util::k8s::kubectl::ApiResourceTypes;
 use crate::k8s::ApiResource;
-use crate::util::k8s;
+use crate::util::{crypt, k8s};
 
 mod util;
 mod config;
@@ -38,7 +38,7 @@ fn main() {
         let output_dir: String = make_resource_output_dir(&app_config, &namespace_opt);
         for resource in resources {
             let file_path = make_resource_file_path(&output_dir, resource);
-            let output_string = make_resource_file_contents(&app_config, resource);
+            let output_string = make_resource_file_contents(&app_config, resource).expect(&format!("unable to make resource file contents for: {}", file_path));
             std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
         }
     }
@@ -70,13 +70,13 @@ fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> Str
     return output_dir.to_string() + "/" + &file_name;
 }
 
-fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::ApiResource) -> String {
+fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::ApiResource) -> Result<String, crypt::EncryptError> {
     return if resource.is_secret() {
         let encryption_key = app_config.secrets_encryption_key.as_ref().expect("BUG: encryption key has been removed or was never set");
-        let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
-        String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string)
+        let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key)?;
+        Ok(String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string))
     } else {
-        String::from(&resource.raw_source)
+        Ok(String::from(&resource.raw_source))
     };
 }
 

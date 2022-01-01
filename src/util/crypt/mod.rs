@@ -13,30 +13,43 @@ pub struct Encrypted {
     pub encrypted_hex_string: String,
 }
 
-pub fn encrypt(input: &str, key: &[u8]) -> Encrypted {
+#[derive(Debug, PartialEq, Clone)]
+pub enum EncryptError {
+    InvalidKey,
+    CipherEncryptFailure,
+}
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum DecryptError {
+    _InvalidNonceHexInput,
+    _InvalidDataHexInput,
+    _InvalidKey,
+    _CipherDecryptFailure,
+    _InvalidUtf8Data,
+}
+
+pub fn encrypt(input: &str, key: &[u8]) -> Result<Encrypted, EncryptError> {
     let mut rng: ChaCha20Rng = ChaCha20Rng::from_entropy();
 
     let nonce_bytes_as_u32: Vec<u32> = (0..3).map(|_| rng.next_u32()).collect();
     let nonce_bytes: Vec<u8> = nonce_bytes_as_u32.iter().flat_map(|x| x.to_be_bytes()).collect();
 
     let nonce = Nonce::<U12>::from_slice(&nonce_bytes);
-    let cipher = Aes256Gcm::new_from_slice(key).expect("could not create AES 256 GCM cipher. Check input key format");
-    let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).expect("BUG: aes 256 gcm cipher failed to encrypt data");
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| EncryptError::InvalidKey)?;
+    let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).map_err(|_| EncryptError::CipherEncryptFailure)?;
 
-    return Encrypted {
+    return Ok(Encrypted {
         nonce_hex_string: hex::encode(nonce.to_vec()),
         encrypted_hex_string: hex::encode(encrypted_bytes),
-    };
+    });
 }
 
-pub fn _decrypt(input: &Encrypted, key: &[u8]) -> String {
-
-    let nonce_bytes = hex::decode(&input.nonce_hex_string).expect("nonce provided to crypt::decrypt is not valid hex");
-    let encrypted_bytes = hex::decode(&input.encrypted_hex_string).expect("encrypted data provided to crypt::decrypt is not valid hex");
+pub fn _decrypt(input: &Encrypted, key: &[u8]) -> Result<String, DecryptError> {
+    let nonce_bytes = hex::decode(&input.nonce_hex_string).map_err(|_| DecryptError::_InvalidNonceHexInput)?;
+    let encrypted_bytes = hex::decode(&input.encrypted_hex_string).map_err(|_| DecryptError::_InvalidDataHexInput)?;
     let nonce = Nonce::<U12>::from_slice(nonce_bytes.as_ref());
-    let cipher = Aes256Gcm::new_from_slice(key).expect("key provided to crypt::decrypt is not a valid aes 256 gcm key");
-    let decrypted_bytes = cipher.decrypt(nonce, encrypted_bytes.as_ref()).expect("BUG: aes 256 gcm cipher failed to decrypt data");
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| DecryptError::_InvalidKey)?;
+    let decrypted_bytes = cipher.decrypt(nonce, encrypted_bytes.as_ref()).map_err(|_|DecryptError::_CipherDecryptFailure)?;
 
-    return String::from_utf8(decrypted_bytes).expect("BUG: aes 256 gcm cipher did not produce valid utf-8");
+    return String::from_utf8(decrypted_bytes).map_err(|_| DecryptError::_InvalidUtf8Data);
 }
