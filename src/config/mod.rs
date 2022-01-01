@@ -18,7 +18,7 @@ enum Command {
     #[clap(setting(AppSettings::DeriveDisplayOrder))]
     Download {
         /// REQUIRED: output directory to create
-        #[clap(short, long, required=true)]
+        #[clap(short, long, required = true)]
         output_dir: String,
 
         /// if to delete previous output directory (default: false)
@@ -26,7 +26,7 @@ enum Command {
         delete_previous_dir: bool,
 
         /// symmetric secrets encryption hex key for aes GCM (lower case 64 chars)
-        #[clap(long, required=false)]
+        #[clap(long, required = false)]
         secrets_encryption_key: Option<String>,
 
         /// disable default excluded types
@@ -34,7 +34,7 @@ enum Command {
         no_default_excluded_types: bool,
 
         /// add additional excluded types
-        #[clap(long, required=false)]
+        #[clap(long, required = false)]
         excluded_types: Vec<String>,
     },
 
@@ -48,7 +48,7 @@ enum Command {
 pub struct AppConfig {
     pub output_dir: String,
     pub delete_previous_dir: bool,
-    pub secrets_encryption_key: Option<String>,
+    pub secrets_encryption_key: Option<Vec<u8>>,
     pub excluded_types: Vec<String>,
 }
 
@@ -64,11 +64,6 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
-
-    pub fn encryption_key_bytes(&self) -> Option<Vec<u8>> {
-        return self.secrets_encryption_key.as_ref().map(|x| hex::decode(x).unwrap());
-    }
-
     pub fn from_cli_args() -> AppConfig {
         let cli_args: CliArgs = CliArgs::parse();
         match cli_args.command {
@@ -99,17 +94,9 @@ impl AppConfig {
                     result.excluded_types.clear();
                 }
                 result.excluded_types.append(&mut excluded_types.to_owned());
-                result.secrets_encryption_key = secrets_encryption_key;
+                result.secrets_encryption_key = secrets_encryption_key.map(|x| parse_encryption_key(&x));
                 result.delete_previous_dir = delete_previous_dir;
                 result.output_dir = output_dir;
-
-                for key_str in &result.secrets_encryption_key {
-                    log::info!("verifying encryption key length and format...");
-                    if key_str.len() != 64 {
-                        panic!("key string was of size {}, must be exactly 64 hex characters", key_str.len());
-                    }
-                    hex::decode(key_str).expect("key was not a valid hex string");
-                }
 
                 return result;
             }
@@ -186,3 +173,11 @@ pub fn default_resources_excluded() -> Vec<String> {
     ].iter().map(|x| x.to_string()).collect();
 }
 
+
+fn parse_encryption_key(hex_str: &str) -> Vec<u8> {
+    log::info!("verifying encryption key length and format...");
+    if hex_str.len() != 64 {
+        panic!("key string was of size {}, must be exactly 64 hex characters", hex_str.len());
+    }
+    return hex::decode(hex_str).expect("key was not a valid hex string");
+}

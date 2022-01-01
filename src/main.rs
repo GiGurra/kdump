@@ -15,7 +15,7 @@ fn main() {
     let app_config: AppConfig = config::AppConfig::from_cli_args();
 
     log::info!("Checking app configuration..");
-    ensure_root_output_dir(&app_config);
+    make_root_output_dir(&app_config);
 
     log::info!("Checking what k8s types to download...");
 
@@ -34,31 +34,10 @@ fn main() {
     log::info!("Writing yaml files...");
 
     for (namespace_opt, resources) in resources_by_namespace {
-        let output_dir: String = match namespace_opt {
-            Some(namespace) => app_config.output_dir.to_string() + "/" + &namespace.to_string(),
-            None => app_config.output_dir.to_string(),
-        };
-        util::file::create_dir_all(&output_dir);
+        let output_dir: String = make_resource_output_dir(&app_config, &namespace_opt);
         for resource in resources {
-            let file_name: String = {
-                let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
-                if resource.is_secret() {
-                    String::from(file_name_base + ".aes")
-                } else {
-                    file_name_base
-                }
-            };
-            let file_path = output_dir.to_string() + "/" + &file_name;
-
-            let output_string: String =
-                if resource.is_secret() {
-                    let encryption_key = app_config.encryption_key_bytes().unwrap();
-                    let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
-                    String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string)
-                } else {
-                    String::from(&resource.raw_source)
-                };
-
+            let file_path = make_resource_file_path(&output_dir, resource);
+            let output_string = make_resource_file_contents(&app_config, resource);
             std::fs::write(&file_path, &output_string).expect(&format!("Unable to write file {}", file_path));
         }
     }
@@ -66,7 +45,41 @@ fn main() {
     log::info!("DONE!");
 }
 
-fn ensure_root_output_dir(app_config: &config::AppConfig) {
+fn make_resource_output_dir(app_config: &config::AppConfig, namespace_opt: &Option<String>) -> String {
+    let output_dir: String = match namespace_opt {
+        Some(namespace) => app_config.output_dir.to_string() + "/" + &namespace.to_string(),
+        None => app_config.output_dir.to_string(),
+    };
+
+    util::file::create_dir_all(&output_dir);
+
+    return output_dir;
+}
+
+fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> String {
+    let file_name: String = {
+        let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name) + "." + &util::file::sanitize(&resource.qualified_type_name()) + ".yaml";
+        if resource.is_secret() {
+            String::from(file_name_base + ".aes")
+        } else {
+            file_name_base
+        }
+    };
+
+    return output_dir.to_string() + "/" + &file_name;
+}
+
+fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::ApiResource) -> String {
+    return if resource.is_secret() {
+        let encryption_key = app_config.secrets_encryption_key.as_ref().expect("BUG: encryption key has been removed or was never set");
+        let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key);
+        String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string)
+    } else {
+        String::from(&resource.raw_source)
+    };
+}
+
+fn make_root_output_dir(app_config: &config::AppConfig) {
     if app_config.delete_previous_dir {
         util::file::delete_all_if_exists(&app_config.output_dir);
     }
