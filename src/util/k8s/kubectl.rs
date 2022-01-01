@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use regex::Regex;
 use std::collections::HashMap;
-use crate::util::k8s::*;
+use crate::util::k8s::ApiResourceType;
 use crate::util;
 use crate::util::shell::RunCommandError;
 
@@ -78,6 +78,6 @@ fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
         namespaced: bool::from_str(&map["NAMESPACED"]).expect("non-bool 'NAMESPACED' in map"),
         kind: String::from(&map["KIND"]),
         verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+").expect("BUG: invalid regex to split VERBS"), true),
-        api_version: parse_api_version(&map["APIVERSION"]),
+        api_version: super::parse_api_version(&map["APIVERSION"]),
     }
 }

@@ -45,16 +45,16 @@ enum Command {
     DefaultExcludedTypes,
 }
 
-pub struct AppConfig {
+pub struct AppCfg {
     pub output_dir: String,
     pub delete_previous_dir: bool,
     pub secrets_encryption_key: Option<Vec<u8>>,
     pub excluded_types: Vec<String>,
 }
 
-impl Default for AppConfig {
+impl Default for AppCfg {
     fn default() -> Self {
-        AppConfig {
+        AppCfg {
             output_dir: "test".to_string(),
             delete_previous_dir: false,
             secrets_encryption_key: None,
@@ -63,8 +63,8 @@ impl Default for AppConfig {
     }
 }
 
-impl AppConfig {
-    pub fn from_cli_args() -> AppConfig {
+impl AppCfg {
+    pub fn from_cli_args() -> AppCfg {
         let cli_args: CliArgs = CliArgs::parse();
         match cli_args.command {
             Command::DefaultExcludedTypes => {
@@ -90,7 +90,7 @@ impl AppConfig {
                 no_default_excluded_types,
                 excluded_types,
             } => {
-                let mut result = AppConfig::default();
+                let mut result = AppCfg::default();
                 if no_default_excluded_types {
                     result.excluded_types.clear();
                 }
@@ -171,7 +171,7 @@ pub fn default_resources_excluded() -> Vec<String> {
         "certificatesigningrequests.certificates.k8s.io",
         "ingresses.extensions",
         "pods.metrics.k8s.io",
-    ].iter().map(|x| x.to_string()).collect()
+    ].iter().map(|x| (*x).to_string()).collect()
 }
 
 

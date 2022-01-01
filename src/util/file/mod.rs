@@ -17,7 +17,7 @@ pub fn create_dir_all(path: &str) -> std::io::Result<()> {
     std::fs::create_dir_all(Path::new(path))
 }
 
-pub fn sanitize(path: &str) -> std::io::Result<String> {
+pub fn sanitize(path: &str) -> String {
     let regex: Regex = regex::Regex::new(r"[^a-zA-Z0-9\-_.]+").expect("BUG: file sanitize regex is invalid");
-    Ok(regex.replace_all(path, "_").to_owned().to_string())
+    regex.replace_all(path, "_").to_string()
 }
