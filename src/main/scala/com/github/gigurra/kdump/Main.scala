@@ -22,10 +22,12 @@ def dumpCurrentContext(appConfig: AppConfig): Unit =
   util.file.delete(outputDir)
   util.file.mkDirs(outputDir)
 
-  log.info(s"Downloading all resources from current context to dir '$outputDir'")
+  log.info(s"Checking what resources to download...")
 
-  // Do all of these in parallel
-  val allResourceTypeNames = async(kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded))
+  val allResourceTypeNames = kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded)
+
+  log.info(s"Downloading all resources from current context...")
+
   val everything: Seq[K8sResource] = kubectl.downloadAllResources(allResourceTypeNames)
 
   for (namespaceOpt, resources) <- everything.groupBy(_.namespace) do
