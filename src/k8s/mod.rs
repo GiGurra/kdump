@@ -1,9 +1,10 @@
 pub mod kubectl;
 
+use gigurra_rust_util::serde as serde;
+use gigurra_rust_util::serde_yaml as serde_yaml;
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
 use crate::util;
-// access all modules between util modules
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiVersion {
@@ -50,7 +51,7 @@ impl ApiResource {
 
 #[derive(Debug, PartialEq, Clone)]
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(crate = "self::serde", rename_all = "camelCase")] // must be below the derive attribute
 pub struct ApiResourceParsedFields {
     pub kind: String,
     pub api_version: String,
@@ -74,7 +75,7 @@ impl ApiResourceParsedFields {
 
 #[derive(Debug, PartialEq, Clone)]
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", crate = "self::serde")]
 pub struct ApiResourceParsedFieldsMetaData {
     pub name: String,
     pub namespace: Option<String>,
@@ -82,7 +83,7 @@ pub struct ApiResourceParsedFieldsMetaData {
 
 #[derive(Debug, PartialEq, Clone)]
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", crate = "self::serde")]
 pub struct ApiResourceList {
     pub api_version: String,
     pub kind: String,

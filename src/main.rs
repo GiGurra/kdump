@@ -1,13 +1,14 @@
-use std::collections::HashMap;
-use itertools::Itertools;
-use crate::config::AppCfg;
-use crate::util::k8s::ApiResourceType;
-use crate::util::k8s::kubectl::ApiResourceTypes;
-use crate::k8s::ApiResource;
-use crate::util::{crypt, k8s};
-
-mod util;
 mod config;
+mod k8s;
+
+use std::collections::HashMap;
+use gigurra_rust_util as util;
+use util::itertools::Itertools;
+use util::log;
+use util::crypt;
+use config::AppCfg;
+use k8s::{ApiResource, ApiResourceType};
+use k8s::kubectl::ApiResourceTypes;
 
 fn main() {
     util::logging::init();
@@ -19,12 +20,12 @@ fn main() {
 
     log::info!("Checking what k8s types to download...");
 
-    let all_resource_type_defs: ApiResourceTypes = util::k8s::kubectl::api_resource_types().expect("Failed to download k8s resource types");
+    let all_resource_type_defs: ApiResourceTypes = k8s::kubectl::api_resource_types().expect("Failed to download k8s resource types");
     let resource_type_defs_to_download: Vec<&ApiResourceType> = app_config.types_do_download(&all_resource_type_defs);
 
     log::info!("Downloading all objects...");
 
-    let everything_as_string: String = util::k8s::kubectl::download_everything(&resource_type_defs_to_download)
+    let everything_as_string: String = k8s::kubectl::download_everything(&resource_type_defs_to_download)
         .expect("Failed to download all k8s resources");
 
     log::info!("Deserializing yaml...");

@@ -1,9 +1,8 @@
 use std::str::FromStr;
-use regex::Regex;
+use gigurra_rust_util as util;
 use std::collections::HashMap;
-use crate::util::k8s::ApiResourceType;
-use crate::util;
-use crate::util::shell::RunCommandError;
+use util::shell::RunCommandError;
+use crate::ApiResourceType;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiResourceTypes {
@@ -77,7 +76,7 @@ fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
         namespaced: bool::from_str(&map["NAMESPACED"]).expect("non-bool 'NAMESPACED' in map"),
         kind: String::from(&map["KIND"]),
-        verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+").expect("BUG: invalid regex to split VERBS"), true),
+        verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &util::regex::Regex::new(r"\s+").expect("BUG: invalid regex to split VERBS"), true),
         api_version: super::parse_api_version(&map["APIVERSION"]),
     }
 }

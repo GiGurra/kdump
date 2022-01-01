@@ -10,14 +10,5 @@ homepage = "https://github.com/gigurra/kdump/tree/use-rust"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.8"
-regex = "1"
-log = { version = "0.4", features = ["std", "serde"] }
-simple_logger = "1.16.0"
-itertools = "0.10.3"
-clap = { version = "3.0.0-rc.9", features = ["derive"] }
-aes-gcm = "0.9.4"
-rand = "0.8.4"
-rand_chacha = "0.3.1"
-hex = "0.4.3"
+gigurra-rust-util = "0.1.1"
+

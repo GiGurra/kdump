@@ -1,6 +1,10 @@
-use crate::{ApiResourceType, util};
 
+use gigurra_rust_util as util;
+use gigurra_rust_util::clap as clap;
 use clap::{AppSettings, Parser, Subcommand};
+use crate::k8s;
+use k8s::ApiResourceType;
+
 
 /// Dump all kubernetes resources as yaml files to a dir
 #[derive(Parser, Debug, PartialEq, Clone)]
@@ -75,7 +79,7 @@ impl AppCfg {
                 std::process::exit(0);
             }
             Command::ClusterResourceTypes => {
-                let types = util::k8s::kubectl::api_resource_types()
+                let types = k8s::kubectl::api_resource_types()
                     .expect("Failed to download k8s resource types");
                 println!("Cluster types:");
                 for tpe in types.accessible.all {
@@ -108,13 +112,13 @@ impl AppCfg {
         self.secrets_encryption_key.is_some()
     }
 
-    pub fn is_type_included(&self, tpe: &util::k8s::ApiResourceType) -> bool {
+    pub fn is_type_included(&self, tpe: &k8s::ApiResourceType) -> bool {
         !self.excluded_types.contains(&tpe.name) &&
             !self.excluded_types.contains(&tpe.qualified_name()) &&
             (!tpe.is_secret() || self.include_secrets())
     }
 
-    pub fn types_do_download<'a>(&self, all_resource_type_defs: &'a util::k8s::kubectl::ApiResourceTypes) -> Vec<&'a ApiResourceType> {
+    pub fn types_do_download<'a>(&self, all_resource_type_defs: &'a k8s::kubectl::ApiResourceTypes) -> Vec<&'a ApiResourceType> {
         all_resource_type_defs.accessible.all
             .iter()
             .filter(|x| self.is_type_included(x))
@@ -176,9 +180,9 @@ pub fn default_resources_excluded() -> Vec<String> {
 
 
 fn parse_encryption_key(hex_str: &str) -> Vec<u8> {
-    log::info!("verifying encryption key length and format...");
+    util::log::info!("verifying encryption key length and format...");
     if hex_str.len() != 64 {
         panic!("key string was of size {}, must be exactly 64 hex characters", hex_str.len());
     }
-    hex::decode(hex_str).expect("key was not a valid hex string")
+    util::hex::decode(hex_str).expect("key was not a valid hex string")
 }
