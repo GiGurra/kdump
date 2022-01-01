@@ -80,7 +80,7 @@ fn find_headings(headings_line: &String, headings_offsets: &Vec<usize>) -> Vec<S
                 headings_line.len()
             };
         let name_bytes = &headings_line.as_bytes()[*byte_offset..end_offset];
-        let name = String::from(String::from_utf8(Vec::from(name_bytes)).unwrap().trim());
+        let name = String::from(String::from_utf8(Vec::from(name_bytes)).expect("BUG: Failed to find headings").trim());
 
         headings.push(StdOutTableColumn { name, byte_offset: *byte_offset });
     }

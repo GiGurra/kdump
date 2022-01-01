@@ -18,8 +18,8 @@ pub enum RunCommandError {
 
 fn get_description(cmd: &std::process::Command) -> CommandDescription {
     CommandDescription {
-        program: cmd.get_program().to_str().unwrap_or("<unknown>").to_string(),
-        args: cmd.get_args().map(|x| x.to_str().unwrap_or("<unknown>").to_string()).collect(),
+        program: cmd.get_program().to_str().get_or_insert("<unknown>").to_string(),
+        args: cmd.get_args().map(|x| x.to_str().get_or_insert("<unknown>").to_string()).collect(),
     }
 }
 

@@ -45,17 +45,13 @@ impl AccessibleApiResourceTypes {
 }
 
 pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
-
     let result = util::shell::run_command(
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );
 
     return result.map(|command_result_output| {
-
         let lines: Vec<String> = command_result_output.lines().map(|x| String::from(x)).collect::<Vec<String>>();
-
         let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
-
         let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 
         return ApiResourceTypes::from(list);
