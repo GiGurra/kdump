@@ -1,7 +1,9 @@
-use std::str::FromStr;
-use gigurra_rust_util as util;
 use std::collections::HashMap;
+use std::str::FromStr;
+
+use gigurra_rust_util as util;
 use util::shell::RunCommandError;
+
 use crate::ApiResourceType;
 
 #[derive(Debug, PartialEq, Clone)]

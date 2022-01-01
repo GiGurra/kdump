@@ -1,10 +1,10 @@
-
-use gigurra_rust_util as util;
-use gigurra_rust_util::clap as clap;
 use clap::{AppSettings, Parser, Subcommand};
-use crate::k8s;
+use gigurra_rust_util as util;
+use util::clap as clap;
+
 use k8s::ApiResourceType;
 
+use crate::k8s;
 
 /// Dump all kubernetes resources as yaml files to a dir
 #[derive(Parser, Debug, PartialEq, Clone)]

@@ -1,10 +1,11 @@
-pub mod kubectl;
-
 use gigurra_rust_util::serde as serde;
 use gigurra_rust_util::serde_yaml as serde_yaml;
 use serde::Deserialize;
 use serde_yaml::{Mapping, Value};
+
 use crate::util;
+
+pub mod kubectl;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ApiVersion {
