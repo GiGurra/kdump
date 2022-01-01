@@ -11,9 +11,10 @@ mod config;
 
 fn main() {
     util::logging::init();
-    log::info!("Checking app configuration..");
 
     let app_config: AppConfig = config::AppConfig::from_cli_args();
+
+    log::info!("Checking app configuration..");
     ensure_root_output_dir(&app_config);
 
     log::info!("Checking what k8s types to download...");
