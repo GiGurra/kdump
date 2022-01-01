@@ -12,10 +12,10 @@ pub struct ApiResourceTypes {
 }
 
 impl ApiResourceTypes {
-    pub fn from(all_values: Vec<ApiResourceType>) -> ApiResourceTypes {
+    pub fn from(all_values: &[ApiResourceType]) -> ApiResourceTypes {
         ApiResourceTypes {
-            all: all_values.to_vec(),
-            accessible: AccessibleApiResourceTypes::from(&all_values),
+            all: Vec::from(all_values),
+            accessible: AccessibleApiResourceTypes::from(all_values),
         }
     }
 }
@@ -37,7 +37,7 @@ impl AccessibleApiResourceTypes {
                 .collect::<Vec<ApiResourceType>>();
 
         AccessibleApiResourceTypes {
-            all: accessible_resources.to_vec(),
+            all: accessible_resources.clone(),
             namespaced: accessible_resources.iter().filter(|x| x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),
             global: accessible_resources.iter().filter(|x| !x.namespaced).cloned().collect::<Vec<ApiResourceType>>(),
         }
@@ -54,7 +54,7 @@ pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
         let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
         let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 
-        ApiResourceTypes::from(list)
+        ApiResourceTypes::from(&list)
     })
 }
 

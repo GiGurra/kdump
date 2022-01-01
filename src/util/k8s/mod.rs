@@ -116,7 +116,7 @@ pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> serde_yaml
 }
 
 pub fn parse_resource(data: &Mapping, remove_status_fields: bool) -> serde_yaml::Result<ApiResource> {
-    let upcast = Value::from(data.to_owned());
+    let upcast = Value::from(data.clone());
     let fields: ApiResourceParsedFields = serde_yaml::from_value(upcast)?;
 
     let mut data_copy = data.clone();
