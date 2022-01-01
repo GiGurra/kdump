@@ -4,7 +4,7 @@ use clap::{AppSettings, Parser, Subcommand};
 
 /// Dump all kubernetes resources as yaml files to a dir
 #[derive(Parser, Debug, PartialEq, Clone)]
-#[clap(about, version, author, setting(AppSettings::SubcommandRequired))]
+#[clap(about, version, setting(AppSettings::SubcommandRequired))]
 pub struct CliArgs {
     #[clap(subcommand)]
     command: Command,
