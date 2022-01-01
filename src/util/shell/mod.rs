@@ -27,10 +27,10 @@ pub fn run_command(cmd: &mut std::process::Command) -> Result<String, RunCommand
     let output: Output =
         cmd.output().map_err(|err| RunCommandFailed(get_description(cmd), err))?;
 
-    return match output.status.code() {
+    match output.status.code() {
         None => Err(RunCommandNoExitCode(get_description(cmd))),
         Some(0) => String::from_utf8(output.stdout)
             .map_err(|err| RunCommandInvalidOutput(get_description(cmd), err.clone())),
         Some(status_code) => Err(RunCommandNonZeroExitCode(get_description(cmd), status_code, String::from_utf8(output.stderr))),
-    };
+    }
 }

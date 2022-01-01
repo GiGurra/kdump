@@ -38,10 +38,10 @@ pub fn encrypt(input: &str, key: &[u8]) -> Result<Encrypted, EncryptError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| EncryptError::InvalidKey)?;
     let encrypted_bytes = cipher.encrypt(nonce, input.as_bytes()).map_err(|_| EncryptError::CipherEncryptFailure)?;
 
-    return Ok(Encrypted {
+    Ok(Encrypted {
         nonce_hex_string: hex::encode(nonce.to_vec()),
         encrypted_hex_string: hex::encode(encrypted_bytes),
-    });
+    })
 }
 
 pub fn _decrypt(input: &Encrypted, key: &[u8]) -> Result<String, DecryptError> {
@@ -51,5 +51,5 @@ pub fn _decrypt(input: &Encrypted, key: &[u8]) -> Result<String, DecryptError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| DecryptError::_InvalidKey)?;
     let decrypted_bytes = cipher.decrypt(nonce, encrypted_bytes.as_ref()).map_err(|_|DecryptError::_CipherDecryptFailure)?;
 
-    return String::from_utf8(decrypted_bytes).map_err(|_| DecryptError::_InvalidUtf8Data);
+    String::from_utf8(decrypted_bytes).map_err(|_| DecryptError::_InvalidUtf8Data)
 }

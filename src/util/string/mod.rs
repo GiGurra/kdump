@@ -9,23 +9,21 @@ pub struct StdOutTableColumn {
 }
 
 pub fn split_to_vec(input: &str, pat: &str, filter_empty: bool) -> Vec<String> {
-    return iter_to_vec(&mut input.split(pat), filter_empty);
+    iter_to_vec(&mut input.split(pat), filter_empty)
 }
 
 pub fn split_to_vec_r(input: &str, pat: &Regex, filter_empty: bool) -> Vec<String> {
-    return iter_to_vec(&mut pat.split(input), filter_empty);
+    iter_to_vec(&mut pat.split(input), filter_empty)
 }
 
 fn iter_to_vec<'a, T: Iterator<Item=&'a str>>(input: &'a mut T, filter_empty: bool) -> Vec<String> {
-    return input
+    input
         .filter(|s| !s.is_empty() || !filter_empty)
         .map(String::from)
-        .collect::<Vec<String>>();
+        .collect::<Vec<String>>()
 }
 
-pub fn remove_wrap(input: &str) -> &str {
-    return &input[1..input.len() - 1];
-}
+pub fn remove_wrap(input: &str) -> &str { &input[1..input.len() - 1] }
 
 pub fn parse_stdout_table(lines: &Vec<String>) -> Vec<HashMap<String, String>> {
     let headings_line = &lines[0];
@@ -33,7 +31,7 @@ pub fn parse_stdout_table(lines: &Vec<String>) -> Vec<HashMap<String, String>> {
     let headings_offsets = find_headings_offsets(headings_line);
     let headings = find_headings(headings_line, &headings_offsets);
     let line_values = find_line_values(&data_lines, headings);
-    return line_values;
+    line_values
 }
 
 fn find_line_values(data_lines: &Vec<String>, headings: Vec<StdOutTableColumn>) -> Vec<HashMap<String, String>> {
@@ -67,7 +65,7 @@ fn find_headings_offsets(headings_line: &String) -> Vec<usize> {
         prev_is_space = c.is_ascii_whitespace();
     }
 
-    return begin_offsets;
+    begin_offsets
 }
 
 fn find_headings(headings_line: &String, headings_offsets: &Vec<usize>) -> Vec<StdOutTableColumn> {
@@ -84,5 +82,5 @@ fn find_headings(headings_line: &String, headings_offsets: &Vec<usize>) -> Vec<S
 
         headings.push(StdOutTableColumn { name, byte_offset: *byte_offset });
     }
-    return headings;
+    headings
 }

@@ -23,15 +23,15 @@ pub struct ApiResourceType {
 
 impl ApiResourceType {
     pub fn is_secret(&self) -> bool {
-        return self.name.to_lowercase() == "secret" || self.name.to_lowercase() == "secrets";
+        self.name.to_lowercase() == "secret" || self.name.to_lowercase() == "secrets"
     }
 
     pub fn qualified_name(&self) -> String {
-        return if self.api_version.name.is_empty() {
+        if self.api_version.name.is_empty() {
             self.name.clone()
         } else {
             self.name.clone() + "." + &self.api_version.name.clone()
-        };
+        }
     }
 }
 
@@ -44,8 +44,8 @@ pub struct ApiResource {
 
 
 impl ApiResource {
-    pub fn is_secret(&self) -> bool { return self.parsed_fields.is_secret(); }
-    pub fn qualified_type_name(&self) -> String { return self.parsed_fields.qualified_type_name(); }
+    pub fn is_secret(&self) -> bool { self.parsed_fields.is_secret() }
+    pub fn qualified_type_name(&self) -> String { self.parsed_fields.qualified_type_name() }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -59,16 +59,16 @@ pub struct ApiResourceParsedFields {
 
 impl ApiResourceParsedFields {
     pub fn is_secret(&self) -> bool {
-        return self.kind.to_lowercase() == "secret" || self.kind.to_lowercase() == "secrets";
+        self.kind.to_lowercase() == "secret" || self.kind.to_lowercase() == "secrets"
     }
 
     pub fn qualified_type_name(&self) -> String {
         let parsed_api_version = parse_api_version(&self.api_version);
-        return if parsed_api_version.name.is_empty() {
+        if parsed_api_version.name.is_empty() {
             self.kind.to_lowercase().clone()
         } else {
             self.kind.to_lowercase().clone() + "." + &parsed_api_version.name.clone()
-        };
+        }
     }
 }
 
@@ -110,9 +110,9 @@ pub fn parse_resource_list(data: &str, remove_status_fields: bool) -> serde_yaml
 
     let item_list: &Vec<serde_yaml::Mapping> = &deserialized_resource_list.items;
 
-    return item_list.iter()
+    item_list.iter()
         .map(|x| parse_resource(x, remove_status_fields))
-        .collect();
+        .collect()
 }
 
 pub fn parse_resource(data: &Mapping, remove_status_fields: bool) -> serde_yaml::Result<ApiResource> {
@@ -126,8 +126,8 @@ pub fn parse_resource(data: &Mapping, remove_status_fields: bool) -> serde_yaml:
         data_copy.remove(&Value::from("lastRefresh"));
     }
 
-    return Ok(ApiResource {
+    Ok(ApiResource {
         raw_source: serde_yaml::to_string(&data_copy)?,
         parsed_fields: fields,
-    });
+    })
 }

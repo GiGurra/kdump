@@ -13,10 +13,10 @@ pub struct ApiResourceTypes {
 
 impl ApiResourceTypes {
     pub fn from(all_values: Vec<ApiResourceType>) -> ApiResourceTypes {
-        return ApiResourceTypes {
+        ApiResourceTypes {
             all: all_values.to_vec(),
             accessible: AccessibleApiResourceTypes::from(&all_values),
-        };
+        }
     }
 }
 
@@ -36,11 +36,11 @@ impl AccessibleApiResourceTypes {
                 .map(|x| x.clone())
                 .collect::<Vec<ApiResourceType>>();
 
-        return AccessibleApiResourceTypes {
+        AccessibleApiResourceTypes {
             all: accessible_resources.to_vec(),
             namespaced: accessible_resources.iter().filter(|x| x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
             global: accessible_resources.iter().filter(|x| !x.namespaced).map(|x| x.clone()).collect::<Vec<ApiResourceType>>(),
-        };
+        }
     }
 }
 
@@ -49,30 +49,30 @@ pub fn api_resource_types() -> Result<ApiResourceTypes, RunCommandError> {
         std::process::Command::new("kubectl").arg("api-resources").arg("-o").arg("wide")
     );
 
-    return result.map(|command_result_output| {
+    result.map(|command_result_output| {
         let lines: Vec<String> = command_result_output.lines().map(|x| String::from(x)).collect::<Vec<String>>();
         let line_maps: Vec<HashMap<String, String>> = util::string::parse_stdout_table(&lines);
         let list: Vec<ApiResourceType> = line_maps.iter().map(map_to_resource_type).collect::<Vec<ApiResourceType>>();
 
-        return ApiResourceTypes::from(list);
-    });
+        ApiResourceTypes::from(list)
+    })
 }
 
 pub fn download_everything(types_to_download: &Vec<&ApiResourceType>) -> Result<String, RunCommandError> {
     let qualified_names: Vec<String> = types_to_download.iter().map(|x| x.qualified_name()).collect();
     let qualified_names_joined: String = qualified_names.join(",");
-    return util::shell::run_command(
+    util::shell::run_command(
         std::process::Command::new("kubectl")
             .arg("get")
             .arg(&qualified_names_joined)
             .arg("--all-namespaces")
             .arg("-o")
             .arg("yaml")
-    );
+    )
 }
 
 fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
-    return ApiResourceType {
+    ApiResourceType {
         name: String::from(&map["NAME"]),
         short_names: util::string::split_to_vec(&map["SHORTNAMES"], ",", true),
         namespaced: bool::from_str(&map["NAMESPACED"]).expect(&format!("missing or non-bool 'NAMESPACED' in {:?}", map)),
@@ -80,5 +80,5 @@ fn map_to_resource_type(map: &HashMap<String, String>) -> ApiResourceType {
         verbs: util::string::split_to_vec_r(util::string::remove_wrap(&map["VERBS"]), &Regex::new(r"\s+")
             .expect(&format!("missing or non-string 'KIND' in {:?}", map)), true),
         api_version: parse_api_version(&map["APIVERSION"]),
-    };
+    }
 }

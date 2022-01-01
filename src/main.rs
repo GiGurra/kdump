@@ -54,30 +54,30 @@ fn make_resource_output_dir(app_config: &config::AppConfig, namespace_opt: &Opti
 
     util::file::create_dir_all(&output_dir)?;
 
-    return Ok(output_dir);
+    Ok(output_dir)
 }
 
 fn make_resource_file_path(output_dir: &str, resource: &k8s::ApiResource) -> std::io::Result<String> {
     let file_name: String = {
         let file_name_base: String = util::file::sanitize(&resource.parsed_fields.metadata.name)? + "." + &util::file::sanitize(&resource.qualified_type_name())? + ".yaml";
         if resource.is_secret() {
-            String::from(file_name_base + ".aes")
+            file_name_base + ".aes"
         } else {
             file_name_base
         }
     };
 
-    return Ok(output_dir.to_string() + "/" + &file_name);
+    Ok(output_dir.to_string() + "/" + &file_name)
 }
 
 fn make_resource_file_contents(app_config: &config::AppConfig, resource: &k8s::ApiResource) -> Result<String, crypt::EncryptError> {
-    return if resource.is_secret() {
+    if resource.is_secret() {
         let encryption_key = app_config.secrets_encryption_key.as_ref().expect("BUG: encryption key has been removed or was never set");
-        let encrypted = util::crypt::encrypt(&resource.raw_source, &encryption_key)?;
-        Ok(String::from(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string))
+        let encrypted = util::crypt::encrypt(&resource.raw_source, encryption_key)?;
+        Ok(encrypted.nonce_hex_string + &encrypted.encrypted_hex_string)
     } else {
-        Ok(String::from(&resource.raw_source))
-    };
+        Ok(resource.raw_source.to_string())
+    }
 }
 
 fn check_root_output_dir(app_config: &config::AppConfig) {

@@ -54,12 +54,12 @@ pub struct AppConfig {
 
 impl Default for AppConfig {
     fn default() -> Self {
-        return AppConfig {
+        AppConfig {
             output_dir: "test".to_string(),
             delete_previous_dir: false,
             secrets_encryption_key: None,
             excluded_types: default_resources_excluded(),
-        };
+        }
     }
 }
 
@@ -99,32 +99,32 @@ impl AppConfig {
                 result.delete_previous_dir = delete_previous_dir;
                 result.output_dir = output_dir;
 
-                return result;
+                result
             }
         }
     }
 
     pub fn include_secrets(&self) -> bool {
-        return self.secrets_encryption_key.is_some();
+        self.secrets_encryption_key.is_some()
     }
 
     pub fn is_type_included(&self, tpe: &util::k8s::ApiResourceType) -> bool {
-        return !self.excluded_types.contains(&tpe.name) &&
+        !self.excluded_types.contains(&tpe.name) &&
             !self.excluded_types.contains(&tpe.qualified_name()) &&
-            (!tpe.is_secret() || self.include_secrets());
+            (!tpe.is_secret() || self.include_secrets())
     }
 
     pub fn types_do_download<'a>(&self, all_resource_type_defs: &'a util::k8s::kubectl::ApiResourceTypes) -> Vec<&'a ApiResourceType> {
-        return all_resource_type_defs.accessible.all
+        all_resource_type_defs.accessible.all
             .iter()
             .filter(|x| self.is_type_included(x))
-            .collect::<Vec<&ApiResourceType>>();
+            .collect::<Vec<&ApiResourceType>>()
     }
 }
 
 
 pub fn default_resources_excluded() -> Vec<String> {
-    return vec![
+    vec![
         "limitranges",
         "podtemplates",
         "replicationcontrollers",
@@ -171,7 +171,7 @@ pub fn default_resources_excluded() -> Vec<String> {
         "certificatesigningrequests.certificates.k8s.io",
         "ingresses.extensions",
         "pods.metrics.k8s.io",
-    ].iter().map(|x| x.to_string()).collect();
+    ].iter().map(|x| x.to_string()).collect()
 }
 
 
@@ -180,5 +180,5 @@ fn parse_encryption_key(hex_str: &str) -> Vec<u8> {
     if hex_str.len() != 64 {
         panic!("key string was of size {}, must be exactly 64 hex characters", hex_str.len());
     }
-    return hex::decode(hex_str).expect("key was not a valid hex string");
+    hex::decode(hex_str).expect("key was not a valid hex string")
 }
