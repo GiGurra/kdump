@@ -54,7 +54,13 @@ object kubectl {
       .map(_.removeUpToAndIncluding("/"))
 
   def downloadAllNamespacedResources(namespace: String, resourceTypes: List[String]): Seq[K8sResource] =
+    resourceTypes.foreach(println)
+    System.exit(0)
     val strVal = runCommand("-n", namespace, "get", resourceTypes.mkString(","), "-o", "yaml").trim
+    parseK8sResourceList(strVal)
+
+  def downloadAllResources(resourceTypes: List[String]): Seq[K8sResource] =
+    val strVal = runCommand("get", resourceTypes.mkString(","), "-o", "yaml", "--all-namespaces").trim
     parseK8sResourceList(strVal)
 
   case class K8sResource(apiVersion: String,

@@ -5,8 +5,11 @@ import internal.util
 import internal.util.kubectl
 import internal.util.kubectl.K8sResource
 import internal.util.async
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
+
+private val log = LoggerFactory.getLogger("kdump")
 
 @main def kdump(): Unit =
   val appConfig = AppConfig.default
@@ -14,41 +17,36 @@ import scala.concurrent.{ExecutionContext, Future}
 
 def dumpCurrentContext(appConfig: AppConfig): Unit =
 
-  val currentK8sContext = kubectl.currentContext()
-  val outputDir = appConfig.outDir(currentK8sContext)
+  val outputDir = appConfig.outputDir
 
   util.file.delete(outputDir)
   util.file.mkDirs(outputDir)
 
-  println(s"Downloading all resources from current context '$currentK8sContext' to dir '$outputDir'")
+  log.info(s"Downloading all resources from current context to dir '$outputDir'")
 
   // Do all of these in parallel
-  val namespaces = async(kubectl.namespaces())
   val allResourceTypeNames = async(kubectl.resourceTypeNames().filter(appConfig.isResourceIncluded))
-  val globalResourceTypeNames = async(kubectl.globalResourceTypeNames().filter(appConfig.isResourceIncluded))
-  val namespacedResourceTypeNames = async(kubectl.namespacedResourceTypeNames().filter(appConfig.isResourceIncluded))
+  val everything: Seq[K8sResource] = kubectl.downloadAllResources(allResourceTypeNames)
 
-  for namespace <- namespaces do
-    dumpNamespacedResources(outputDir, namespace, namespacedResourceTypeNames)
+  for (namespaceOpt, resources) <- everything.groupBy(_.namespace) do
+    dumpNamespacedResources(outputDir, namespaceOpt, resources)
 
+  log.info(s"DONE!")
 
-def dumpNamespacedResources(outputDir: String,
-                            namespace: String,
-                            namespacedResourceTypeNames: List[String]): Unit =
+def dumpNamespacedResources(rootOutputDir: String,
+                            namespace: Option[String],
+                            resources: Seq[K8sResource]): Unit =
 
-  println(s"processing namespace $namespace")
+  log.info(s"processing ${namespace.map(n => s"namespace $n").getOrElse("global resources")}")
 
-  val namespaceDir = s"$outputDir/$namespace"
+  val outputDir = namespace.fold(rootOutputDir)(n => s"$rootOutputDir/$n")
 
-  util.file.mkDirs(namespaceDir)
+  util.file.mkDirs(outputDir)
 
-  val parsedYaml = kubectl.downloadAllNamespacedResources(namespace, namespacedResourceTypeNames)
-
-  for (kind, resources) <- parsedYaml.groupBy(_.qualifiedKind) do
-    val resourceDir = s"$namespaceDir/${util.file.sanitizeFileName(kind)}"
-    util.file.mkDirs(resourceDir)
+  for (kind, resources) <- resources.groupBy(_.qualifiedKind) do
     for resource <- resources do
+      val filepath = s"$outputDir/${util.file.sanitizeFileName(resource.qualifiedName)}.yaml"
       if resource.isSecret then
         println(s"ignoring secret, not yet implemented: $resource")
       else
-        util.file.string2File(s"$resourceDir/${util.file.sanitizeFileName(resource.name)}.yaml", resource.sourceYaml)
+        util.file.string2File(filepath, resource.sourceYaml)

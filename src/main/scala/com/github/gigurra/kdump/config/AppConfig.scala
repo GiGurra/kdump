@@ -3,16 +3,9 @@ package com.github.gigurra.kdump.config
 import com.github.gigurra.kdump.config.AppConfig.SecretsHandling
 
 
-case class AppConfig(outputDirBase: String,
-                     appendContextToOutputDir: Boolean,
+case class AppConfig(outputDir: String,
                      excludedResourceTypes: Set[String],
                      secretsHandling: AppConfig.SecretsHandling) {
-
-  def outDir(currentContext: String): String =
-    if appendContextToOutputDir then
-      outputDirBase + "/" + currentContext
-    else
-      outputDirBase
 
   def isResourceIncluded(resourceTypeName: String): Boolean =
     !excludedResourceTypes.contains(resourceTypeName) &&
@@ -22,8 +15,7 @@ case class AppConfig(outputDirBase: String,
 object AppConfig {
 
   def default: AppConfig = AppConfig(
-    outputDirBase = "test",
-    appendContextToOutputDir = true,
+    outputDir = "test",
     excludedResourceTypes = defaultExcludedResourceTypes,
     secretsHandling = SecretsHandling.DontStore,
   )
