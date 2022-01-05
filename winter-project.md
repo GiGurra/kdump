@@ -25,7 +25,7 @@ platform simplicity are more important than the programming langauge itself. Thi
 language I am used to (scala) itself is more capable and has simpler solutions for how to model the desired business
 logic, but the tooling around it is just.. a nightmare and perfect case of the jvm's "build once * run nowhere".
 
-### Go
+## [Go](https://github.com/gigurra/kdump/tree/use-go)
 
 While somewhat limiting in terms of raw language capability, its simplicity and incredibly powerful ecosystem for
 building, releasing and sharing your work easily makes up for it for desktop/cli apps. Probably would be the same for
@@ -48,7 +48,7 @@ tagged, you can deploy and run it anywhere with one command :)).
   result and other hints were always correct)
 * overall enjoyment: 8/10 (I suspect this could increase up as go evolves into a slightly more powerful language)
 
-## Rust
+## [Rust](https://github.com/gigurra/kdump/tree/use-rust)
 
 Totally different beast. Think C++ but make move the default instead of copying. "what do I need from language and
 compiler to make *move* the default?"). To my surprise the tooling for building and sharing your work was very simple to
@@ -74,7 +74,7 @@ GC :) - meaning there are some realtime situations where the other languages her
   think I have ever felt so sure about my application doing the right thing as in Rust * once the app compiled. And
   the "Clippy" linter is awesome for improving your code style and quality! And don't forget.)
 
-## Scala/jvm base
+## [Scala/jvm base](https://github.com/gigurra/kdump/tree/use-scala)
 
 NOTE: BIAS warning. I have spent roughly 60-70% of my last 10 years of professional development in jvm land :). But
 already after having spent a week or so in go/rust land, it seems like our jvm langauge gods/designers have focused way
