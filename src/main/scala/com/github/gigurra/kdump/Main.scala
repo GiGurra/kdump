@@ -45,10 +45,9 @@ def dumpNamespacedResources(rootOutputDir: String,
 
   util.file.mkDirs(outputDir)
 
-  for (kind, resources) <- resources.groupBy(_.qualifiedKind) do
-    for resource <- resources do
-      val filepath = s"$outputDir/${util.file.sanitizeFileName(resource.qualifiedName)}.yaml"
-      if resource.isSecret then
-        println(s"ignoring secret, not yet implemented: $resource")
-      else
-        util.file.string2File(filepath, resource.sourceYaml)
+  for resource <- resources do
+    val filepath = s"$outputDir/${util.file.sanitizeFileName(resource.qualifiedName)}.yaml"
+    if resource.isSecret then
+      println(s"ignoring secret, not yet implemented: $resource")
+    else
+      util.file.string2File(filepath, resource.sourceYaml)
