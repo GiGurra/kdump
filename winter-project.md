@@ -72,7 +72,7 @@ GC :) - meaning there are some realtime situations where the other languages her
   types by explicitly writing them out on my helper variables, not relying on IDE's type inference)
 * overall enjoyment: 8/10 (while probably not as productive as Go out of the box, it does have its charm and I dont
   think I have ever felt so sure about my application doing the right thing as in Rust * once the app compiled. And
-  the "Clippy" linter is awesome for improving your code style and quality! And don't forget.)
+  the "Clippy" linter is awesome for improving your code style and quality!)
 
 ## [Scala/jvm base](https://github.com/gigurra/kdump/tree/use-scala)
 
