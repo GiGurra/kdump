@@ -2,7 +2,6 @@ package kubectl
 
 import (
 	"github.com/gigurra/go-util/shell"
-	"github.com/gigurra/go-util/stringutil"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/samber/lo"
 	"log"
@@ -23,7 +22,7 @@ func init() {
 }
 
 func Namespaces() []string {
-	return stringutil.MapStrArray(stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
+	return MapStrArray(SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
 }
 
 func CurrentNamespace() string {
@@ -36,9 +35,9 @@ func CurrentContext() string {
 
 func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
 	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
-	itemsWithPrefixes := stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
+	itemsWithPrefixes := RemoveEmptyLines(SplitLines(rawString))
 	return lo.Map(itemsWithPrefixes, func(in string, _ int) string {
-		return stringutil.RemoveUpToAndIncluding(in, "/")
+		return RemoveUpToAndIncluding(in, "/")
 	})
 }
 
@@ -98,19 +97,21 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 	log.Printf("kubectl api-resources -o wide returned:\n%s\n", rawString)
 	log.Println("-----")
 
-	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
+	apiResourcesRaw := ParseStdOutTable(rawString)
 
 	allApiResources := lo.Map(apiResourcesRaw, func(in map[string]string, _ int) *k8s.ApiResourceType {
 
+		log.Printf("checking: %+v\n", in)
+
 		out := &k8s.ApiResourceType{
-			Name:       stringutil.MapStrValOrElse(in, "NAME", ""),
-			ShortNames: stringutil.CsvStr2arr(stringutil.MapStrValOrElse(in, "SHORTNAMES", "")),
-			Namespaced: stringutil.Str2boolOrElse(stringutil.MapStrValOrElse(in, "NAMESPACED", ""), false),
-			Kind:       stringutil.MapStrValOrElse(in, "KIND", ""),
-			Verbs:      stringutil.WierdKubectlArray2arr(stringutil.MapStrValOrElse(in, "VERBS", "")),
+			Name:       MapStrValOrElse(in, "NAME", ""),
+			ShortNames: CsvStr2arr(MapStrValOrElse(in, "SHORTNAMES", "")),
+			Namespaced: Str2boolOrElse(MapStrValOrElse(in, "NAMESPACED", ""), false),
+			Kind:       MapStrValOrElse(in, "KIND", ""),
+			Verbs:      WierdKubectlArray2arr(MapStrValOrElse(in, "VERBS", "")),
 		}
 
-		apiVersionString := stringutil.MapStrValOrElse(in, "APIVERSION", "")
+		apiVersionString := MapStrValOrElse(in, "APIVERSION", "")
 		parts := strings.Split(apiVersionString, "/")
 		if len(parts) == 1 {
 			out.ApiVersion = k8s.ApiVersion{Version: parts[0]}
@@ -156,5 +157,5 @@ func runCommand(args ...string) string {
 }
 
 func removeK8sResourcePrefix(in string) string {
-	return stringutil.RemoveUpToAndIncluding(in, "/")
+	return RemoveUpToAndIncluding(in, "/")
 }

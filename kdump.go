@@ -47,6 +47,9 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	log.Printf("Downloading all resources from current context")
 
 	apiResourceTypes := kubectl.ApiResourceTypes()
+
+	log.Printf("apiResourceTypes: %+v", apiResourceTypes)
+
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 	everything := kubectl.DownloadEverything(resourcesToDownload)
 
