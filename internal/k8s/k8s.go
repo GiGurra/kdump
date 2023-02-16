@@ -1,8 +1,7 @@
 package k8s
 
 import (
-	"github.com/gigurra/go-util/coll"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
@@ -59,14 +58,14 @@ func ParseResources(in string) []*Resource {
 	if _, ok := root["items"]; ok {
 		return ParseResourceList(root)
 	} else {
-		return []*Resource{ParseSingleResource(root)}
+		return []*Resource{ParseSingleResource(root, 0)}
 	}
 }
 
 func GroupByNamespace(all []*Resource) map[string][]*Resource {
-	return coll.GroupBy(all, func(r *Resource) string {
+	return lo.GroupBy(all, func(r *Resource) string {
 		return r.MetaData.Namespace
-	}).(map[string][]*Resource)
+	})
 }
 
 type ResourceMetadata struct {
@@ -76,10 +75,10 @@ type ResourceMetadata struct {
 
 func ParseResourceList(in map[string]interface{}) []*Resource {
 	items := in["items"].([]interface{})
-	return funk.Map(items, ParseSingleResource).([]*Resource)
+	return lo.Map(items, ParseSingleResource)
 }
 
-func ParseSingleResource(item interface{}) *Resource {
+func ParseSingleResource(item interface{}, _ int) *Resource {
 
 	m := item.(map[interface{}]interface{})
 

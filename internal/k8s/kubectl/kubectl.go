@@ -4,7 +4,7 @@ import (
 	"github.com/gigurra/go-util/shell"
 	"github.com/gigurra/go-util/stringutil"
 	"github.com/gigurra/kdump/internal/k8s"
-	"github.com/thoas/go-funk"
+	"github.com/samber/lo"
 	"os/exec"
 	"strings"
 )
@@ -24,9 +24,9 @@ func CurrentContext() string {
 func ListNamespacedResourcesOfType(namespace string, resourceType string) []string {
 	rawString := runCommand("-n", namespace, "get", resourceType, "-o", "name")
 	itemsWithPrefixes := stringutil.RemoveEmptyLines(stringutil.SplitLines(rawString))
-	return funk.Map(itemsWithPrefixes, func(in string) string {
+	return lo.Map(itemsWithPrefixes, func(in string, _ int) string {
 		return stringutil.RemoveUpToAndIncluding(in, "/")
-	}).([]string)
+	})
 }
 
 func DownloadNamespacedResource(namespace string, resourceType string, resourceName string, format string) string {
@@ -41,18 +41,18 @@ func DownloadGlobalResource(resourceType string, resourceName string, format str
 
 func DownloadEverything(types []*k8s.ApiResourceType) string {
 
-	qualifiedTypeNames := funk.Map(types, func(in *k8s.ApiResourceType) string {
+	qualifiedTypeNames := lo.Map(types, func(in *k8s.ApiResourceType, _ int) string {
 		return in.QualifiedName
-	}).([]string)
+	})
 
 	return runCommand("get", strings.Join(qualifiedTypeNames, ","), "--all-namespaces", "-o", "yaml")
 }
 
 func DownloadEverythingInNamespace(types []*k8s.ApiResourceType, namespace string) string {
 
-	qualifiedTypeNames := funk.Map(types, func(in *k8s.ApiResourceType) string {
+	qualifiedTypeNames := lo.Map(types, func(in *k8s.ApiResourceType, _ int) string {
 		return in.QualifiedName
-	}).([]string)
+	})
 
 	return runCommand("get", strings.Join(qualifiedTypeNames, ","), "-n", namespace, "-o", "yaml")
 }
@@ -82,7 +82,7 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
 
-	allApiResources := funk.Map(apiResourcesRaw, func(in map[string]string) *k8s.ApiResourceType {
+	allApiResources := lo.Map(apiResourcesRaw, func(in map[string]string, _ int) *k8s.ApiResourceType {
 
 		out := &k8s.ApiResourceType{
 			Name:       stringutil.MapStrValOrElse(in, "NAME", ""),
@@ -106,11 +106,11 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 
 		return out
 
-	}).([]*k8s.ApiResourceType)
+	})
 
-	accessibleApiResources := funk.Filter(allApiResources, func(r *k8s.ApiResourceType) bool { return funk.ContainsString(r.Verbs, "get") }).([]*k8s.ApiResourceType)
-	globalResources := funk.Filter(accessibleApiResources, func(r *k8s.ApiResourceType) bool { return !r.Namespaced }).([]*k8s.ApiResourceType)
-	namespacedResources := funk.Filter(accessibleApiResources, func(r *k8s.ApiResourceType) bool { return r.Namespaced }).([]*k8s.ApiResourceType)
+	accessibleApiResources := lo.Filter(allApiResources, func(r *k8s.ApiResourceType, _ int) bool { return lo.Contains(r.Verbs, "get") })
+	globalResources := lo.Filter(accessibleApiResources, func(r *k8s.ApiResourceType, _ int) bool { return !r.Namespaced })
+	namespacedResources := lo.Filter(accessibleApiResources, func(r *k8s.ApiResourceType, _ int) bool { return r.Namespaced })
 
 	return ApiResourceTypesResponse{
 		All: allApiResources,
