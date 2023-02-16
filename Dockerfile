@@ -19,13 +19,6 @@ ENV PATH="/root/.krew/bin:$PATH"
 # install kubectl neat (to remove unneccesary manifest contents)
 RUN PATH="$HOME/.krew/bin:$PATH" kubectl krew install neat
 
-#
-## git keyscan bitbucket and github
-#RUN mkdir ~/.ssh
-#RUN chmod 600 ~/.ssh
-#RUN ssh-keyscan github.com >> ~/.ssh/known_hosts #is this safe?
-#RUN ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts #is this safe?
-
 ## install kdump
 ARG VERSION
 RUN go install github.com/gigurra/kdump@$VERSION
