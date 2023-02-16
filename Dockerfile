@@ -27,5 +27,5 @@ RUN PATH="$HOME/.krew/bin:$PATH" kubectl krew install neat
 #RUN ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts #is this safe?
 
 ## install kdump
-RUN go install github.com/gigurra/kdump@v1.26.7
+RUN go install github.com/gigurra/kdump@v1.26.8
 
