@@ -48,7 +48,10 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 
 	log.Printf("Downloading all resources of %d types", len(resourcesToDownload))
-	everything := k8s.DownloadEverything(resourcesToDownload)
+	everythingRaw := k8s.DownloadEverything(resourcesToDownload)
+
+	log.Printf("Running kubectl neat on everything.. (this takes about 3-4x the download time)")
+	everything := k8s.PipeToCommand(everythingRaw, "kubectl", "neat")
 
 	log.Printf("Parsing %d bytes...\n", len(everything))
 
@@ -69,15 +72,12 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			name := fileutil.SanitizePath(resource.MetaData.Name)
 			typ := fileutil.SanitizePath(resource.QualifiedTypeName)
 			filename := name + "." + typ + ".yaml"
-			neatYaml := k8s.PipeToCommand(resource.SourceYaml, "kubectl", "neat")
 			if resource.IsSecret() {
 				filePath := outDir + "/" + filename + ".aes"
-				log.Printf("Saving (encrypted resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
-				fileutil.String2File(filePath, crypt.Encrypt(neatYaml, appConfig.SecretsEncryptKey))
+				fileutil.String2File(filePath, crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
 			} else {
 				filePath := outDir + "/" + filename
-				log.Printf("Saving (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
-				fileutil.String2File(filePath, neatYaml)
+				fileutil.String2File(filePath, resource.SourceYaml)
 			}
 			iResource++
 		}
