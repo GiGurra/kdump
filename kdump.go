@@ -72,11 +72,11 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			neatYaml := k8s.PipeToCommand(resource.SourceYaml, "kubectl", "neat")
 			if resource.IsSecret() {
 				filePath := outDir + "/" + filename + ".aes"
-				log.Printf("Encrypting secret (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
+				log.Printf("Saving (encrypted resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
 				fileutil.String2File(filePath, crypt.Encrypt(neatYaml, appConfig.SecretsEncryptKey))
 			} else {
 				filePath := outDir + "/" + filename
-				log.Printf("Neatifying (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
+				log.Printf("Saving (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
 				fileutil.String2File(filePath, neatYaml)
 			}
 			iResource++
