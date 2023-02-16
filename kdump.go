@@ -69,7 +69,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			name := fileutil.SanitizePath(resource.MetaData.Name)
 			typ := fileutil.SanitizePath(resource.QualifiedTypeName)
 			filename := name + "." + typ + ".yaml"
-			neatYaml := k8s.RunCommandWithStdIn(resource.SourceYaml, "kubectl", "neat")
+			neatYaml := k8s.PipeToCommand(resource.SourceYaml, "kubectl", "neat")
 			if resource.IsSecret() {
 				trgFilePath := outDir + "/" + filename + ".aes"
 				log.Printf("Encrypting secret (resource %d / %d) %s", iResource+1, totalResourceCount, trgFilePath)

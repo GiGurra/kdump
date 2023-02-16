@@ -109,7 +109,7 @@ func RunCommand(app string, args ...string) string {
 	return strings.TrimSpace(string(outputBytes))
 }
 
-func RunCommandWithStdIn(input string, app string, args ...string) string {
+func PipeToCommand(input string, app string, args ...string) string {
 
 	subProcess := exec.Command(app, args...)
 	stdin := errh.Unwrap(subProcess.StdinPipe()) // stdin must be opened before .start/.output
