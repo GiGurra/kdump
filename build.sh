@@ -8,6 +8,3 @@ export DOCKER_TAG=gigurra/kdump:$VERSION
 echo "Building kdump $VERSION"
 go build .
 
-echo "Built kdump version: $VERSION"
-
-docker build . -t "$DOCKER_TAG"  --build-arg VERSION="$VERSION"

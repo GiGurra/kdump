@@ -4,9 +4,11 @@ set -e
 
 source build.sh
 
-echo "Publishing kdump $VERSION"
-
 git tag "$VERSION"
 git push origin "$VERSION"
+
+docker build . -t "$DOCKER_TAG"  --build-arg VERSION="$VERSION"
+
+echo "Publishing kdump $VERSION"
 
 docker push "$DOCKER_TAG"
