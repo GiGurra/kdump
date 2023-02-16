@@ -123,6 +123,7 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 			panic("Unable to parse ApiVersion from string: " + apiVersionString)
 		}
 
+		log.Printf("-> Looks like: %+v", out)
 		return out
 
 	})

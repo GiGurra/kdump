@@ -163,6 +163,6 @@ func WierdKubectlArray2arr(strIn string) []string {
 	if strings.HasPrefix(strIn, "[") && strings.HasSuffix(strIn, "]") {
 		return CsvStr2arrSep(strIn[1:(len(strIn)-1)], " ")
 	} else {
-		return CsvStr2arrSep(strIn, " ")
+		return CsvStr2arrSep(strIn, ",")
 	}
 }
