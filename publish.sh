@@ -2,6 +2,11 @@
 
 set -e
 
+if [ -n "$(git status --porcelain)" ]; then
+  echo "Uncommitted changes detected - Bailing!"
+  exit 1
+fi
+
 source build.sh
 export DOCKER_TAG=gigurra/kdump:$VERSION
 
