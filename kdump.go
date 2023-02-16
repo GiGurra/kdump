@@ -76,13 +76,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			} else {
 				filePath := outDir + "/" + filename
 				log.Printf("Neatifying (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
-				fileutil.String2File(filePath, resource.SourceYaml)
-				neatifiedYaml := k8s.RunCommand("kubectl", "neat", "-f", filePath)
-				err := os.Remove(filePath)
-				if err != nil {
-					panic("Failed removing temp file " + filePath)
-				}
-				fileutil.String2File(filePath, neatifiedYaml)
+				fileutil.String2File(filePath, k8s.RunCommandWithStdIn(resource.SourceYaml, "kubectl", "neat"))
 			}
 			iResource++
 		}

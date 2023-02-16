@@ -1,7 +1,9 @@
 package k8s
 
 import (
+	"github.com/gigurra/kdump/internal/errh"
 	"github.com/samber/lo"
+	"io"
 	"log"
 	"os/exec"
 	"strings"
@@ -103,6 +105,21 @@ func RunCommand(app string, args ...string) string {
 	if err != nil {
 		panic(`command "` + fullCommand + `" failed with error: ` + err.Error())
 	}
+
+	return strings.TrimSpace(string(outputBytes))
+}
+
+func RunCommandWithStdIn(input string, app string, args ...string) string {
+
+	subProcess := exec.Command(app, args...)
+	stdin := errh.Unwrap(subProcess.StdinPipe()) // stdin must be opened before .start/.output
+
+	go func() {
+		errh.Unwrap(io.WriteString(stdin, input))
+		errh.Ignore(stdin.Close())
+	}()
+
+	outputBytes := errh.Unwrap(subProcess.Output()) // starts and awaits the result of the child process
 
 	return strings.TrimSpace(string(outputBytes))
 }
