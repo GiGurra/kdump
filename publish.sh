@@ -15,5 +15,5 @@ echo "Publishing kdump $VERSION"
 git tag "$VERSION"
 git push origin "$VERSION"
 
-docker build . -t "$DOCKER_TAG"  --build-arg VERSION="$VERSION"
+docker build . -t "$DOCKER_TAG" --platform linux/amd64 --build-arg VERSION="$VERSION"
 docker push "$DOCKER_TAG"
