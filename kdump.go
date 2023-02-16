@@ -5,6 +5,7 @@ import (
 	"github.com/gigurra/go-util/cliUtil"
 	"github.com/gigurra/go-util/crypt"
 	"github.com/gigurra/go-util/fileutil"
+	"github.com/gigurra/go-util/shell"
 	"github.com/gigurra/kdump/config"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/gigurra/kdump/internal/k8s/kubectl"
@@ -53,7 +54,10 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	k8sResources := k8s.ParseResources(everything)
 	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
-	log.Printf("Storing resources in '%s'...\n", rootOutputDir)
+	totalResourceCount := len(k8sResources)
+	iResource := 0
+
+	log.Printf("Storing %d resources in '%s'...\n", totalResourceCount, rootOutputDir)
 	for namespace, resources := range k8sResourcesByNamespace {
 		outDir := rootOutputDir
 		if namespace != "" {
@@ -61,12 +65,22 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			fileutil.CreateFolderIfNotExists(outDir, "could not create output dir: "+outDir)
 		}
 		for _, resource := range resources {
-			filename := fileutil.SanitizePath(resource.MetaData.Name) + "." + fileutil.SanitizePath(resource.QualifiedTypeName) + ".yaml"
+			name := fileutil.SanitizePath(resource.MetaData.Name)
+			typ := fileutil.SanitizePath(resource.QualifiedTypeName)
+			filename := name + "." + typ + ".yaml"
 			if resource.IsSecret() {
-				fileutil.String2File(outDir+"/"+filename+".aes", crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
+				trgFilePath := outDir + "/" + filename + ".aes"
+				log.Printf("Processing (%d / %d) %s", iResource+1, totalResourceCount, trgFilePath)
+				fileutil.String2File(trgFilePath, crypt.Encrypt(resource.SourceYaml, appConfig.SecretsEncryptKey))
 			} else {
-				fileutil.String2File(outDir+"/"+filename, resource.SourceYaml)
+				filePath := outDir + "/" + filename
+				log.Printf("Processing (%d / %d) %s", iResource+1, totalResourceCount, filePath)
+				fileutil.String2File(filePath, resource.SourceYaml)
+				neatifiedYaml := shell.RunCommand("kubectl", "neat", "-f", filePath)
+				os.Remove(filePath)
+				fileutil.String2File(filePath, neatifiedYaml)
 			}
+			iResource++
 		}
 	}
 }

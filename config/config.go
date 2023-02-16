@@ -63,6 +63,10 @@ func getDefaultExcludedResourceTypes() []string {
 		"certificatesigningrequests.certificates.k8s.io",
 		"ingresses.extensions",
 		"pods.metrics.k8s.io",
+		"extractionresults.vulnerabilities.protect.gke.io",
+		"endpointslices",
+		"ippools",
+		"leases",
 	}
 }
 
@@ -106,6 +110,12 @@ func (config *AppConfig) IsResourceIncluded(resourceType *k8s.ApiResourceType) b
 
 func (config *AppConfig) FilterIncludedResources(resourceTypes []*k8s.ApiResourceType) []*k8s.ApiResourceType {
 	return lo.Filter(resourceTypes, func(r *k8s.ApiResourceType, index int) bool {
-		return config.IsResourceIncluded(r)
+		if config.IsResourceIncluded(r) {
+			println("Including " + r.Name)
+			return true
+		} else {
+			println("Excluding " + r.Name)
+			return false
+		}
 	})
 }

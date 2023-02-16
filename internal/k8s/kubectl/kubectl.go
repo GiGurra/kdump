@@ -5,9 +5,22 @@ import (
 	"github.com/gigurra/go-util/stringutil"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/samber/lo"
+	"log"
 	"os/exec"
 	"strings"
 )
+
+func init() {
+
+	// Check we have
+	log.Printf("Checking that kubectl is installed...")
+	if !shell.CommandExists("kubectl") {
+		panic("kubectl not on path!")
+	}
+
+	log.Printf("Checking that kubectl neat is installed...")
+	shell.RunCommand("kubectl", "neat", "--help")
+}
 
 func Namespaces() []string {
 	return stringutil.MapStrArray(stringutil.SplitLines(runCommand("get", "namespaces", "-o", "name")), removeK8sResourcePrefix)
@@ -123,10 +136,6 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 }
 
 func runCommand(args ...string) string {
-
-	if !shell.CommandExists("kubectl") {
-		panic("k8s not on path!")
-	}
 
 	fullCommand := "kubectl " + strings.Join(args, " ")
 
