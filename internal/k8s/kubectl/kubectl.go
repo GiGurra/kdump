@@ -95,6 +95,9 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
 
+	log.Printf("kubectl api-resources -o wide returned:\n%s\n", rawString)
+	log.Println()
+
 	allApiResources := lo.Map(apiResourcesRaw, func(in map[string]string, _ int) *k8s.ApiResourceType {
 
 		out := &k8s.ApiResourceType{
