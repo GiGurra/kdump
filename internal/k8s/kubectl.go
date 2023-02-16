@@ -21,7 +21,7 @@ func init() {
 	}
 
 	log.Printf("Checking that kubectl neat is installed...")
-	runCommand("kubectl", "neat", "--help")
+	RunCommand("kubectl", "neat", "--help")
 }
 
 func DownloadEverything(types []*ApiResourceType) string {
@@ -30,7 +30,7 @@ func DownloadEverything(types []*ApiResourceType) string {
 		return in.QualifiedName
 	})
 
-	return runCommand("kubectl", "get", strings.Join(qualifiedTypeNames, ","), "--all-namespaces", "-o", "yaml")
+	return RunCommand("kubectl", "get", strings.Join(qualifiedTypeNames, ","), "--all-namespaces", "-o", "yaml")
 }
 
 type ApiResourceTypesResponse struct {
@@ -48,7 +48,7 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 
 	log.Printf("Checking what api resource types are available...\n")
 
-	rawString := runCommand("kubectl", "api-resources", "-o", "wide")
+	rawString := RunCommand("kubectl", "api-resources", "-o", "wide")
 
 	apiResourcesRaw := ParseStdOutTable(rawString)
 
@@ -92,7 +92,7 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 	}
 }
 
-func runCommand(app string, args ...string) string {
+func RunCommand(app string, args ...string) string {
 
 	fullCommand := app + " " + strings.Join(args, " ")
 

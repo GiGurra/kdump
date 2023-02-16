@@ -5,7 +5,6 @@ import (
 	"github.com/gigurra/go-util/cliUtil"
 	"github.com/gigurra/go-util/crypt"
 	"github.com/gigurra/go-util/fileutil"
-	"github.com/gigurra/go-util/shell"
 	"github.com/gigurra/kdump/config"
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/urfave/cli/v2"
@@ -78,7 +77,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 				filePath := outDir + "/" + filename
 				log.Printf("Neatifying (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
 				fileutil.String2File(filePath, resource.SourceYaml)
-				neatifiedYaml := shell.RunCommand("kubectl", "neat", "-f", filePath)
+				neatifiedYaml := k8s.RunCommand("kubectl", "neat", "-f", filePath)
 				err := os.Remove(filePath)
 				if err != nil {
 					panic("Failed removing temp file " + filePath)
