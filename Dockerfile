@@ -16,6 +16,4 @@ RUN ssh-keyscan github.com >> ~/.ssh/known_hosts #is this safe?
 RUN ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts #is this safe?
 
 ## install kdump
-ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
-ADD kdump kdump
-RUN ln -s $(pwd)/kdump /usr/local/bin/kdump
+RUN go install github.com/gigurra/kdump@v1.26.5
