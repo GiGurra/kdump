@@ -8,7 +8,6 @@ import (
 	"github.com/gigurra/go-util/shell"
 	"github.com/gigurra/kdump/config"
 	"github.com/gigurra/kdump/internal/k8s"
-	"github.com/gigurra/kdump/internal/k8s/kubectl"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
@@ -46,12 +45,11 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	log.Printf("Downloading all resources from current context")
 
-	apiResourceTypes := kubectl.ApiResourceTypes()
-
-	log.Printf("apiResourceTypes: %+v", apiResourceTypes)
-
+	apiResourceTypes := k8s.ApiResourceTypes()
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
-	everything := kubectl.DownloadEverything(resourcesToDownload)
+
+	log.Printf("Downloading all resources of %d types", len(resourcesToDownload))
+	everything := k8s.DownloadEverything(resourcesToDownload)
 
 	log.Printf("Parsing %d bytes...\n", len(everything))
 
@@ -81,7 +79,10 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 				log.Printf("Processing (%d / %d) %s", iResource+1, totalResourceCount, filePath)
 				fileutil.String2File(filePath, resource.SourceYaml)
 				neatifiedYaml := shell.RunCommand("kubectl", "neat", "-f", filePath)
-				os.Remove(filePath)
+				err := os.Remove(filePath)
+				if err != nil {
+					panic("Failed removing temp file " + filePath)
+				}
 				fileutil.String2File(filePath, neatifiedYaml)
 			}
 			iResource++

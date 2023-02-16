@@ -1,11 +1,9 @@
-package kubectl
+package k8s
 
 import (
 	"bufio"
 	"github.com/samber/lo"
-	"github.com/thoas/go-funk"
 	"golang.org/x/exp/constraints"
-	"log"
 	"strconv"
 	"strings"
 	"unicode"
@@ -20,32 +18,6 @@ func SplitLines(s string) []string {
 	return lines
 }
 
-func TrimSpaces(lines []string) []string {
-	return funk.Map(lines, func(in string) string { return strings.TrimSpace(in) }).([]string)
-}
-
-func NonEmptyLines(source string) []string {
-	return RemoveEmptyLines(SplitLines(source))
-}
-
-func RemoveEmptyLines(lines []string) []string {
-	return funk.FilterString(TrimSpaces(lines), func(in string) bool { return len(in) > 0 })
-}
-
-func RemoveUpToAndIncluding(fullString string, key string) string {
-	idx := strings.Index(fullString, key)
-	if idx >= 0 {
-		keyLen := len(key)
-		return fullString[idx+keyLen:]
-	} else {
-		return fullString
-	}
-}
-
-func MapStrArray(arr []string, mapFn func(string) string) []string {
-	return funk.Map(arr, mapFn).([]string)
-}
-
 type StdOutTableColumn struct {
 	name       string
 	start      int
@@ -58,8 +30,6 @@ func figureOutLayout(table string) []StdOutTableColumn {
 	headingLine := lines[0]
 	startIndices := make([]int, 0)
 	headingEndIndices := make([]int, 0)
-
-	log.Println("Headings:: " + headingLine)
 
 	/////////////////////////////////////////////////////////
 	// Build knowledge of where data can be in the table :S
@@ -109,15 +79,12 @@ func ParseStdOutTable(table string) []map[string]string {
 
 	/////////////////////////////////////////////////////////
 	// Extract the data
-	log.Printf("  cols: %+v", layout)
 
 	result := make([]map[string]string, 0)
 
 	for _, dataLine := range dataLines {
 		lineResult := make(map[string]string, 0)
-		log.Println("Checking line: " + dataLine)
 		for _, heading := range layout {
-			log.Println("  Checking heading: " + heading.name)
 			endIndex := min(heading.end, len(dataLine))
 			if heading.start < endIndex {
 				lineResult[heading.name] = strings.TrimSpace(dataLine[heading.start:endIndex])
@@ -150,7 +117,7 @@ func Str2boolOrElse(str string, fallback bool) bool {
 }
 
 func CsvStr2arrSep(str string, sep string) []string {
-	return MapStrArray(strings.Split(str, sep), func(in string) string {
+	return lo.Map(strings.Split(str, sep), func(in string, _ int) string {
 		return strings.TrimSpace(in)
 	})
 }

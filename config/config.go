@@ -110,12 +110,6 @@ func (config *AppConfig) IsResourceIncluded(resourceType *k8s.ApiResourceType) b
 
 func (config *AppConfig) FilterIncludedResources(resourceTypes []*k8s.ApiResourceType) []*k8s.ApiResourceType {
 	return lo.Filter(resourceTypes, func(r *k8s.ApiResourceType, index int) bool {
-		if config.IsResourceIncluded(r) {
-			println("Including " + r.Name)
-			return true
-		} else {
-			println("Excluding " + r.Name)
-			return false
-		}
+		return config.IsResourceIncluded(r)
 	})
 }
