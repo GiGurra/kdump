@@ -2,12 +2,15 @@ FROM golang:1.19-bullseye
 
 # Install system requirements
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential dnsutils wget git curl tree
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential dnsutils wget git ca-certificates curl tree
 
-# install kubectl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl
-RUN chmod +x kubectl
-RUN mv kubectl /usr/local/bin/kubectl
+# install kubectl (1.26 :S)
+RUN mkdir -p /etc/apt/keyrings/
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl
+RUN curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+RUN echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+RUN DEBIAN_FRONTEND=noninteractive apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y kubectl
 
 # git keyscan bitbucket and github
 RUN mkdir ~/.ssh
