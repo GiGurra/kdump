@@ -1,4 +1,4 @@
-FROM golang:1.17-bullseye
+FROM golang:1.19-bullseye
 
 # Install system requirements
 RUN DEBIAN_FRONTEND=noninteractive apt-get update
