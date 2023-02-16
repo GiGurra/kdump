@@ -40,6 +40,7 @@ func main() {
 
 func dumpCurrentContext(appConfig config.AppConfig) {
 
+	log.Printf("Running kdump version " + Version)
 	log.Printf("Checking output dir..")
 	rootOutputDir := ensureRootOutputDir(appConfig)
 

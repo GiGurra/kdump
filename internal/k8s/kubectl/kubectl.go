@@ -91,12 +91,14 @@ type ApiResourceTypesAccessible struct {
 
 func ApiResourceTypes() ApiResourceTypesResponse {
 
+	log.Printf("Checkout what api resource types are available...\n")
+
 	rawString := runCommand("api-resources", "-o", "wide")
 
 	_ /* schema */, apiResourcesRaw := stringutil.ParseStdOutTable(rawString)
 
 	log.Printf("kubectl api-resources -o wide returned:\n%s\n", rawString)
-	log.Println()
+	log.Println("-----")
 
 	allApiResources := lo.Map(apiResourcesRaw, func(in map[string]string, _ int) *k8s.ApiResourceType {
 
