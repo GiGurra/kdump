@@ -77,7 +77,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 			} else {
 				filePath := outDir + "/" + filename
 				log.Printf("Neatifying (resource %d / %d) %s", iResource+1, totalResourceCount, filePath)
-				fileutil.String2File(filePath, k8s.RunCommandWithStdIn(neatYaml, "kubectl", "neat"))
+				fileutil.String2File(filePath, neatYaml)
 			}
 			iResource++
 		}
