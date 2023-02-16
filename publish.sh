@@ -3,6 +3,7 @@
 set -e
 
 source build.sh
+export DOCKER_TAG=gigurra/kdump:$VERSION
 
 git tag "$VERSION"
 git push origin "$VERSION"
