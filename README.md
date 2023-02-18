@@ -3,7 +3,7 @@ Dumps all kubernetes api resources (pods, deployments, namespaces, etc..) to fil
 
 This is implemented in several languages (just for the heck of it) 
 
-* [Go](https://github.com/gigurra/kdump/tree/use-go)
+* [Go](https://github.com/gigurra/kdump/tree/use-go) (primary/official implementation)
 * [Rust](https://github.com/gigurra/kdump/tree/use-rust)
 * [Js (node, the original experiment)](https://github.com/gigurra/kdump/tree/use-node)
 * [Scala (not yet complete, missing cli)](https://github.com/gigurra/kdump/tree/use-scala)
