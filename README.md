@@ -15,9 +15,8 @@ NOTE: also dumps secrets, if you explicitly tell it to do so by providing an enc
 
 
 ```
-
-╰─>$ kdump --help
-
+2023/02/19 00:18:22 Checking that kubectl is installed...
+2023/02/19 00:18:22 Checking that kubectl neat is installed...
 NAME:
    kdump - Dump all kubernetes resources as yaml files to a dir
 
@@ -25,7 +24,7 @@ USAGE:
    kdump [global options] [arguments...]
 
 VERSION:
-   v1.26.0
+   v1.26.19
 
 GLOBAL OPTIONS:
    --output-dir value, -o value    output directory to create
