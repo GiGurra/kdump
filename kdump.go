@@ -58,10 +58,7 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 	k8sResources := k8s.ParseResources(everything)
 	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
-	totalResourceCount := len(k8sResources)
-	iResource := 0
-
-	log.Printf("Storing %d resources in '%s'...\n", totalResourceCount, rootOutputDir)
+	log.Printf("Storing %d resources in '%s'...\n", len(k8sResources), rootOutputDir)
 	for namespace, resources := range k8sResourcesByNamespace {
 		outDir := rootOutputDir
 		if namespace != "" {
@@ -79,7 +76,6 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 				filePath := outDir + "/" + filename
 				fileutil.String2File(filePath, resource.SourceYaml)
 			}
-			iResource++
 		}
 	}
 }
