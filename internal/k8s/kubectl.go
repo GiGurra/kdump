@@ -1,12 +1,16 @@
 package k8s
 
 import (
+	"context"
+	"fmt"
 	"github.com/gigurra/kdump/internal/errh"
+	"github.com/gigurra/kdump/internal/util/util_cmd"
 	"github.com/samber/lo"
 	"io"
 	"log"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func commandExists(command string) bool {
@@ -98,15 +102,16 @@ func RunCommand(app string, args ...string) string {
 
 	fullCommand := app + " " + strings.Join(args, " ")
 
-	cmd := exec.Command(app, args...)
-
-	outputBytes, err := cmd.Output()
+	res, err := util_cmd.
+		NewCommandA(app, args...).
+		WithTimeout(30 * time.Minute).
+		Run(context.Background())
 
 	if err != nil {
-		panic(`command "` + fullCommand + `" failed with error: ` + err.Error())
+		panic(fmt.Sprintf(`command "%s" failed with error: %s - output: %s`, fullCommand, err.Error(), res.Combined))
 	}
 
-	return strings.TrimSpace(string(outputBytes))
+	return strings.TrimSpace(res.StdOut)
 }
 
 func PipeToCommand(input string, app string, args ...string) string {
