@@ -7,6 +7,7 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"fmt"
 )
 
 func commandExists(command string) bool {
@@ -95,15 +96,14 @@ func ApiResourceTypes() ApiResourceTypesResponse {
 }
 
 func RunCommand(app string, args ...string) string {
-
 	fullCommand := app + " " + strings.Join(args, " ")
 
 	cmd := exec.Command(app, args...)
 
-	outputBytes, err := cmd.Output()
+	outputBytes, err := cmd.CombinedOutput()
 
 	if err != nil {
-		panic(`command "` + fullCommand + `" failed with error: ` + err.Error())
+		panic(fmt.Sprintf(`command "%s" failed with error: %s - output: %s`, fullCommand, err.Error(), string(outputBytes)))
 	}
 
 	return strings.TrimSpace(string(outputBytes))
