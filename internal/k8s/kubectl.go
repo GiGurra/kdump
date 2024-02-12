@@ -108,7 +108,7 @@ func RunCommand(app string, args ...string) string {
 		Run(context.Background())
 
 	if err != nil {
-		panic(fmt.Sprintf(`command "%s" failed with error: %s - output: %s`, fullCommand, err.Error(), res.Combined))
+		panic(fmt.Sprintf(`command "%s" failed with error code %d: %s`, fullCommand, res.Code, res.Combined))
 	}
 
 	return strings.TrimSpace(res.StdOut)

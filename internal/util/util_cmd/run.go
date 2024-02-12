@@ -32,6 +32,7 @@ type CommandResult struct {
 	Combined string
 	Err      error
 	Attempts int
+	Code     int
 }
 
 func defaultTimeout() time.Duration {
@@ -166,8 +167,13 @@ func (c Command) Run(ctx context.Context) (CommandResult, error) {
 	stderr := stderrBuffer.String()
 	combined := combinedBuffer.String()
 
+	exitCode := 0
 	if err != nil {
-		err = fmt.Errorf("command failed: %w\nstderr:%s", err, stderr)
+		var exitError *exec.ExitError
+		ok := errors.As(err, &exitError)
+		if ok {
+			exitCode = exitError.ExitCode()
+		}
 	}
 
 	return CommandResult{
@@ -176,6 +182,7 @@ func (c Command) Run(ctx context.Context) (CommandResult, error) {
 		Combined: combined,
 		Err:      err,
 		Attempts: attempts,
+		Code:     exitCode,
 	}, err
 }
 
