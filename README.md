@@ -25,9 +25,9 @@ your system, and you can run kdump directly.
 
 You can use `go install` to install kdump:
 
-    ```bash
-    go install github.com/omrikiei/kdump@latest (or v1.27.3)
-    ```
+```shell
+go install github.com/omrikiei/kdump@latest #(or v1.27.3)
+```
 
 ## Usage
 
