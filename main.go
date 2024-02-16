@@ -27,7 +27,7 @@ func main() {
 
 	boa.Wrap{
 		Use:    "kdump -o <output-dir> [-d] [-e <encryption-key>]",
-		Short:  "Dump all kubernetes resources as yaml files to a dir",
+		Short:  "kdump " + Version + "\nDump all kubernetes resources as yaml files to a dir",
 		Params: &f,
 		ParamEnrich: boa.ParamEnricherCombine(
 			boa.ParamEnricherName,
