@@ -55,6 +55,8 @@ func dumpCurrentContext(appConfig config.AppConfig) {
 
 	slog.Info("Running kdump version " + Version)
 
+	k8s.CheckNecessaryCliAppsAvailable()
+
 	slog.Info("Checking that we have at least one kubectl context...")
 	if len(k8s.ListAvailableContexts()) == 0 {
 		slog.Error("Bailing! No kubectl contexts available!")

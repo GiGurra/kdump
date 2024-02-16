@@ -7,7 +7,7 @@ import (
 	"github.com/GiGurra/kdump/internal/util/util_cmd"
 	"github.com/samber/lo"
 	"io"
-	"log"
+	"log/slog"
 	"os/exec"
 	"strings"
 	"time"
@@ -18,15 +18,15 @@ func commandExists(command string) bool {
 	return err == nil
 }
 
-func init() {
+func CheckNecessaryCliAppsAvailable() {
 
 	// Check we have
-	log.Printf("Checking that kubectl is installed...")
+	slog.Info("Checking that kubectl is installed...")
 	if !commandExists("kubectl") {
 		panic("kubectl not on path!")
 	}
 
-	log.Printf("Checking that kubectl neat is installed...")
+	slog.Info("Checking that kubectl neat is installed...")
 	RunCommand("kubectl", "neat", "--help")
 }
 
@@ -63,7 +63,7 @@ type ApiResourceTypesAccessible struct {
 
 func ApiResourceTypes() ApiResourceTypesResponse {
 
-	log.Printf("Checking what api resource types are available...\n")
+	slog.Info("Checking what api resource types are available...")
 
 	rawString := RunCommand("kubectl", "api-resources", "-o", "wide")
 
