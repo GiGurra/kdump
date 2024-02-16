@@ -1,5 +1,7 @@
 github.com/GiGurra/boa v0.0.25 h1:Rrp4JIN78kbaL1Hl1zCB6xRPnoLhnDr+s3OwRaGvZ0s=
 github.com/GiGurra/boa v0.0.25/go.mod h1:K6N/o6QQP9roc48PI0rTYdJFT50WYF/vlq0yezTV0+A=
+github.com/GiGurra/boa v0.0.27 h1:TLwHa2Ehp02NC9zj60WdbeI94rhs8HrWYmEAzorT23k=
+github.com/GiGurra/boa v0.0.27/go.mod h1:gLDIPnA094Kys2QdyK20LtNgIxg8FvZbGyC7VludKos=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
