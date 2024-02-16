@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gigurra/kdump/internal/util/util_context"
+	"github.com/GiGurra/kdump/internal/util/util_context"
 	"io"
 	"os"
 	"os/exec"

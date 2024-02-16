@@ -1,4 +1,4 @@
-module github.com/gigurra/kdump
+module github.com/GiGurra/kdump
 
 go 1.22.0
 

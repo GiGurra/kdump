@@ -17,5 +17,5 @@ RUN PATH="$HOME/.krew/bin:$PATH" kubectl krew install neat
 
 ## install kdump
 ARG VERSION
-RUN go install github.com/gigurra/kdump@$VERSION
+RUN go install github.com/GiGurra/kdump@$VERSION
 

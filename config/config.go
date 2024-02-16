@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/gigurra/kdump/internal/k8s"
-	"github.com/gigurra/kdump/internal/util/util_crypt"
+	"github.com/GiGurra/kdump/internal/k8s"
+	"github.com/GiGurra/kdump/internal/util/util_crypt"
 	"github.com/samber/lo"
 	"log"
 	"strings"

@@ -3,8 +3,8 @@ package k8s
 import (
 	"context"
 	"fmt"
-	"github.com/gigurra/kdump/internal/errh"
-	"github.com/gigurra/kdump/internal/util/util_cmd"
+	"github.com/GiGurra/kdump/internal/errh"
+	"github.com/GiGurra/kdump/internal/util/util_cmd"
 	"github.com/samber/lo"
 	"io"
 	"log"
