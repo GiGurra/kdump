@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/gigurra/go-util/crypt"
 	"github.com/gigurra/kdump/internal/k8s"
+	"github.com/gigurra/kdump/internal/util/util_crypt"
 	"github.com/samber/lo"
 	"log"
 	"strings"
@@ -88,7 +88,7 @@ func (config *AppConfig) Validate() {
 	}
 
 	validateCryptoKey := func(key string) string {
-		crypt.Encrypt("Hello Encrypt", key)
+		util_crypt.Encrypt("Hello Encrypt", key)
 		return key
 	}
 

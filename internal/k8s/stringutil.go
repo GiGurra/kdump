@@ -3,7 +3,6 @@ package k8s
 import (
 	"bufio"
 	"github.com/samber/lo"
-	"golang.org/x/exp/constraints"
 	"strconv"
 	"strings"
 	"unicode"
@@ -62,12 +61,6 @@ func figureOutLayout(table string) []StdOutTableColumn {
 	}))
 
 	return headings
-}
-func min[T constraints.Ordered](a, b T) T {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func ParseStdOutTable(table string) []map[string]string {
