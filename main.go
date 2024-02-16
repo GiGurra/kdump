@@ -7,14 +7,18 @@ import (
 	"github.com/gigurra/kdump/internal/k8s"
 	"github.com/gigurra/kdump/internal/util/util_crypt"
 	"github.com/gigurra/kdump/internal/util/util_file"
+	"github.com/gigurra/kdump/internal/util/util_log"
 	"github.com/spf13/cobra"
 	"log"
+	"log/slog"
+	"os"
 )
 
 type Params struct {
 	OutputDir            boa.Required[string] `descr:"The output directory to create"`
 	DeletePrevDir        boa.Required[bool]   `descr:"Delete previous output directory" default:"false"`
 	SecretsEncryptionKey boa.Optional[string] `descr:"Symmetric secrets encryption hex key for aes GCM (lower case 64 chars)"`
+	GcpLogFormat         boa.Required[bool]   `descr:"Use GCP log format" default:"false"`
 }
 
 func main() {
@@ -36,6 +40,7 @@ func main() {
 			appConfig.OutputDir = f.OutputDir.Value()
 			appConfig.DeletePrevDir = f.DeletePrevDir.Value()
 			appConfig.SecretsEncryptKey = f.SecretsEncryptionKey.GetOrElse("")
+			appConfig.GcpLogFormat = f.GcpLogFormat.Value()
 			appConfig.Validate()
 			dumpCurrentContext(appConfig)
 		},
@@ -44,27 +49,44 @@ func main() {
 
 func dumpCurrentContext(appConfig config.AppConfig) {
 
-	log.Printf("Running kdump version " + Version)
-	log.Printf("Checking output dir..")
+	if appConfig.GcpLogFormat {
+		util_log.ConfigureGcpCompatibleJsonDefaultSlog(util_log.LogCfg{}.Default())
+	}
+
+	slog.Info("Running kdump version " + Version)
+
+	slog.Info("Checking that we have at least one kubectl context...")
+	if len(k8s.ListAvailableContexts()) == 0 {
+		slog.Error("Bailing! No kubectl contexts available!")
+		os.Exit(1)
+	}
+
+	slog.Info("Checking that we have a current kubectl context...")
+	if k8s.CurrentContext() == "" {
+		slog.Error("Bailing! No current kubectl context available!")
+		os.Exit(1)
+	}
+
+	slog.Info("Checking output dir..")
 	rootOutputDir := ensureRootOutputDir(appConfig)
 
-	log.Printf("Downloading all resources from current context")
+	slog.Info("Downloading all resources from current context")
 
 	apiResourceTypes := k8s.ApiResourceTypes()
 	resourcesToDownload := appConfig.FilterIncludedResources(apiResourceTypes.Accessible.All)
 
-	log.Printf("Downloading all resources of %d types", len(resourcesToDownload))
+	slog.Info(fmt.Sprintf("Downloading all resources of %d types", len(resourcesToDownload)))
 	everythingRaw := k8s.DownloadEverything(resourcesToDownload)
 
-	log.Printf("Running kubectl neat on everything.. (this takes about 3-4x the download time)")
+	slog.Info(fmt.Sprintf("Running kubectl neat on everything.. (this takes about 3-4x the download time)"))
 	everything := k8s.PipeToCommand(everythingRaw, "kubectl", "neat")
 
-	log.Printf("Parsing %d bytes...\n", len(everything))
+	slog.Info(fmt.Sprintf("Parsing %d bytes...\n", len(everything)))
 
 	k8sResources := k8s.ParseResources(everything)
 	k8sResourcesByNamespace := k8s.GroupByNamespace(k8sResources)
 
-	log.Printf("Storing %d resources in '%s'...\n", len(k8sResources), rootOutputDir)
+	slog.Info(fmt.Sprintf("Storing %d resources in '%s'...\n", len(k8sResources), rootOutputDir))
 	for namespace, resources := range k8sResourcesByNamespace {
 		outDir := rootOutputDir
 		if namespace != "" {

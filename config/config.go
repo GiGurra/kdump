@@ -13,6 +13,7 @@ type AppConfig struct {
 	DeletePrevDir         bool
 	ExcludedResourceTypes []string
 	SecretsEncryptKey     string
+	GcpLogFormat          bool
 }
 
 func getDefaultExcludedResourceTypes() []string {

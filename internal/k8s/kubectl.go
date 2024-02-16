@@ -30,6 +30,17 @@ func init() {
 	RunCommand("kubectl", "neat", "--help")
 }
 
+func ListAvailableContexts() []string {
+	allString := RunCommand("kubectl", "config", "get-contexts", "-o", "name")
+	lines := strings.Split(allString, "\n")
+	trimmedLines := lo.Map(lines, func(in string, _ int) string { return strings.TrimSpace(in) })
+	return lo.Filter(trimmedLines, func(in string, _ int) bool { return len(in) > 0 })
+}
+
+func CurrentContext() string {
+	return strings.TrimSpace(RunCommand("kubectl", "config", "current-context"))
+}
+
 func DownloadEverything(types []*ApiResourceType) string {
 
 	qualifiedTypeNames := lo.Map(types, func(in *ApiResourceType, _ int) string {
