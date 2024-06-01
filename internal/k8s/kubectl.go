@@ -3,8 +3,8 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/GiGurra/cmder"
 	"github.com/GiGurra/kdump/internal/errh"
-	"github.com/GiGurra/kdump/internal/util/util_cmd"
 	"github.com/samber/lo"
 	"io"
 	"log/slog"
@@ -113,13 +113,13 @@ func RunCommand(app string, args ...string) string {
 
 	fullCommand := app + " " + strings.Join(args, " ")
 
-	res, err := util_cmd.
-		NewCommandA(app, args...).
-		WithTimeout(30 * time.Minute).
+	res := cmder.
+		NewA(app, args...).
+		WithTotalTimeout(30 * time.Minute).
 		Run(context.Background())
 
-	if err != nil {
-		panic(fmt.Sprintf(`command "%s" failed with error code %d: %s`, fullCommand, res.Code, res.Combined))
+	if res.Err != nil {
+		panic(fmt.Sprintf(`command "%s" failed with error code %d: %s`, fullCommand, res.ExitCode, res.Combined))
 	}
 
 	return strings.TrimSpace(res.StdOut)
