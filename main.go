@@ -30,6 +30,9 @@ func main() {
 		Short:   "kdump " + Version + "\nDump all kubernetes resources as yaml files to a dir",
 		Version: Version,
 		Params:  &f,
+		SubCommands: []*cobra.Command{
+			boa.Wrap{}.ToCmd(), // Must add one subcommand in cobra to get completions
+		},
 		ParamEnrich: boa.ParamEnricherCombine(
 			boa.ParamEnricherName,
 			boa.ParamEnricherShort,
